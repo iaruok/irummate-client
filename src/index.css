@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+:root {
+  --brand-background: #EEF3FA;
+  --brand-primary: #1D3D7A;
+  --text-basic: #172238;
+  --text-basic-muted: #6E7B92;
+  --text-primary: #1F3F7A;
+  --text-secondary: #3D6FBE;
+  --border: #e5e4e7;
+
+  --sans: Pretendard, 'ui-sans-serif', system-ui, sans-serif;
+  --heading: Pretendard, 'ui-sans-serif', system-ui, sans-serif;
+
+  /* Mobile First - Start with mobile sizes */
+  font: 16px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text-basic);
+  background: var(--brand-background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Safe area support for notched devices */
+  padding: max(0px, env(safe-area-inset-top)) max(0px, env(safe-area-inset-right)) max(0px, env(safe-area-inset-bottom)) max(0px, env(safe-area-inset-left));
+
+  /* Tablet and above */
+  @media (min-width: 768px) {
+    font-size: 18px;
+  }
+}
+
+@theme {
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-background: var(--brand-background);
+  --color-fg-basic: var(--text-basic);
+  --color-fg-basic-muted: var(--text-basic-muted);
+  --color-fg-primary: var(--text-primary);
+  --color-fg-secondary: var(--text-secondary);
+
+  --font-snas: var(--sans);
+  --font-heading: var(--heading);
+}
+
+/* 다크모드 설정
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+} */
+
+body {
+  margin: 0;
+  overscroll-behavior: none; /* Prevent scroll bounce on iOS */
+  -webkit-user-select: none; /* Disable text selection */
+  user-select: none;
+  -webkit-touch-callout: none; /* Disable iOS callout menu */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+}
+
+/* id가 root인 요소에 적용(index.html의 root 요소) */
+#root {
+  width: 100%;
+  max-width: 1126px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Tablet and above - Add border and increase padding */
+@media (min-width: 768px) {
+  #root {
+    border-inline: 1px solid var(--border);
+    padding: 24px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  #root {
+    padding: 32px;
+  }
+}
+
+/* h1, h2, p에 적용되는 스타일
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+} */
