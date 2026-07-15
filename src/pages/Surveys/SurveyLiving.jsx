@@ -1,10 +1,12 @@
 import {useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProgressBar from '../../components/ProgressBar';
 import Slider from './components/Slider';
 import RadioBtnGroup from '../../components/RadioBtnGroup';
 import MoveBtnGroup from '../../components/MoveBtnGroup';
 
 function SurveyLiving() {
+    const navigate = useNavigate();
     const [smokingStatus, setSmokingStatus] = useState(0);
     const [eatingInRoom, setEatingInRoom] = useState(1);
     const [temperaturePreference, setTemperaturePreference] = useState(1);
@@ -92,8 +94,8 @@ function SurveyLiving() {
                 />
             </section>
             <MoveBtnGroup
-                next='/surveys/introduce'
                 prev='/surveys/clean'
+                onNext={() => navigate('/surveys/introduce')}
             />
         </main>
     );

@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Slider from './components/Slider';
 import ProgressBar from '../../components/ProgressBar';
 import MoveBtnGroup from '../../components/MoveBtnGroup';
 
 function SurveySleep() {
+    const navigate = useNavigate();
     const [bettime, setBettime] = useState(1);
     const [snoring, setSnoring] = useState(1);
     const [sleepTalking, setSleepTalking] = useState(1);
@@ -49,8 +51,8 @@ function SurveySleep() {
                 />
             </section>
             <MoveBtnGroup
-                next='/surveys/clean'
                 prev='/user/details'
+                onNext={() => navigate('/surveys/clean')}
             />
         </main>
     );

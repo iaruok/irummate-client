@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 import TextArea from './components/TextArea.jsx'
 import ProgressBar from '../../components/ProgressBar.jsx'
 import MoveBtnGroup from '../../components/MoveBtnGroup.jsx'
 import MultipleBtnGroup from './components/MultipleBtnGroup.jsx';
 
 function SurveyIntroduce() {
+    const navigate = useNavigate();
     const [visibleProfileFilelds, setVisibleProfileFields] = useState([]);
 
     return (
@@ -45,8 +47,8 @@ function SurveyIntroduce() {
                 />
             </section>
             <MoveBtnGroup
-                next='/certification'
                 prev='/surveys/living'
+                onNext={() => navigate('/certification')}
             />
         </main>
     );

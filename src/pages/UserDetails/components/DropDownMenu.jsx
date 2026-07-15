@@ -4,7 +4,7 @@ function DropDownMenu({
     id,
     name,
     label,
-    data = [],
+    items = [],
     value,
     placeholder = "학부/학과를 선택하세요",
     required = true,
@@ -34,10 +34,10 @@ function DropDownMenu({
                 <option value="" disabled>
                     {placeholder}
                 </option>
-                {data.map(({ item, value: optionValue }) => (
+                {items.map((item) => (
                     <option
-                        key={optionValue}
-                        value={optionValue}>
+                        key={item}
+                        value={item}>
                         {item}
                     </option>
                 ))}

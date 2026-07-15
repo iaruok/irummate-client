@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-function MoveBtnGroup({next, prev}) {
+function MoveBtnGroup({prev, onNext}) {
     const navigate = useNavigate();
 
     return(
@@ -15,7 +15,7 @@ function MoveBtnGroup({next, prev}) {
             <button
                 type="button"
                 className="flex flex-1 justify-center h-movebtn rounded-movebtn bg-brand-primary font-sans font-bold text-white text-md px-4 py-3"
-                onClick={() => navigate(`${next}`)}
+                onClick={onNext}
             > 
                 다음
             </button>

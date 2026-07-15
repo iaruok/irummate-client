@@ -18,9 +18,9 @@ function KakaoCallback() {
 
         async function requestAccessToken() {
             try {
-                const response = await postKakaoAuthCode(authCode);
+                const responseBody = await postKakaoAuthCode(authCode);
                 console.log('액세스 토큰 발급 성공');
-                localStorage.setItem('accessToken', response.data.accessToken);
+                localStorage.setItem('accessToken', responseBody.data.accessToken);
                 navigate('/user/details');
             }
             catch (error) {

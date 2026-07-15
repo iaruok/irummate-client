@@ -1,17 +1,39 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProgressBar from '../../components/ProgressBar.jsx'
 import InlineInput from './components/InlineInput.jsx';
 import RadioBtnGroup from '../../components/RadioBtnGroup.jsx';
 import DropDownMenu from './components/DropDownMenu.jsx';
 import MoveBtnGroup from '../../components/MoveBtnGroup.jsx';
+import { postUserDetails } from '../../api/users/userDetails.js';
 
 function UserDetails() {
+    const navigate = useNavigate();
     const [realName, setRealName] = useState('');
     const [age, setAge] = useState(0);
     const [gender, setGender] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');    // 전화번호
     const [studentId, setStudentId] = useState('');
     const [department, setDepartment] = useState('');
+
+    async function handleNext() {
+        const requestBody = {
+            realName: realName,
+            age: Number(age),
+            gender: gender,
+            phoneNumber: phoneNumber,
+            studentId: studentId,
+            department: department
+        };
+        try {
+            const responseBody = await postUserDetails(requestBody);
+            console.log(responseBody.message);
+            navigate('/surveys/sleep');
+        } catch (error) {
+            console.error(error);
+        }
+        
+    }
 
     return (
         <main className="relative min-h-dvh p-5 flex flex-col bg-brand-background pb-[calc(16px+env(safe-area-inset-bottom))]">
@@ -82,13 +104,16 @@ function UserDetails() {
                 <DropDownMenu
                     name="department"
                     label="학부/학과"
+                    items={[
+                        "컴퓨터과학부"
+                    ]}
                     value={department}
                     onChange={setDepartment}
                 />
             </section>
             <MoveBtnGroup
-                next='/surveys/sleep'
                 prev='/login'
+                onNext={handleNext}
             />
         </main>
     );

@@ -1,10 +1,12 @@
 import {useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProgressBar from '../../components/ProgressBar';
 import Slider from './components/Slider';
 import RadioBtnGroup from '../../components/RadioBtnGroup';
 import MoveBtnGroup from '../../components/MoveBtnGroup';
 
 function SurveyClean() {
+    const navigate = useNavigate();
     const [organizingStyle, setOrganizingStyle] = useState(1);
     const [showerFrequency, setShowerFrequency] = useState(1);
 
@@ -47,8 +49,8 @@ function SurveyClean() {
                 />
             </section>
             <MoveBtnGroup
-                next='/surveys/living'
                 prev='/surveys/sleep'
+                onNext={() => navigate('/surveys/living')}
             />
         </main>
     );
