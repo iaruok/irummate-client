@@ -97,6 +97,15 @@ function isSameDate(dateA, dateB) {
   );
 }
 
+function isMatchDateToday(matchDate) {
+  if (!matchDate) return false;
+
+  const date = new Date(matchDate);
+  if (Number.isNaN(date.getTime())) return false;
+
+  return isSameDate(date, new Date());
+}
+
 function getMatchDateLabel(matchDate, matchStatus) {
   if (!DATE_VISIBLE_STATUSES.has(matchStatus) || !matchDate) return '';
 
@@ -132,15 +141,22 @@ function MatchingCard({ person, isFront = false }) {
   const [isIntroductionOpen, setIsIntroductionOpen] = useState(false);
   const percentage = Number(person.matchPercentage);
   const matchDateLabel = getMatchDateLabel(person.matchDate, person.matchStatus);
-  const statusInfo = MATCH_STATUS_INFO[person.matchStatus] ?? {
-    label: '매칭 상태를 확인하고 있어요',
-    badgeClass: 'text-fg-primary',
-    dotClass: 'bg-[#8fa2bc]',
-  };
+  const isRecommendedToday = person.matchStatus === 'RECOMMENDED' && isMatchDateToday(person.matchDate);
+  const statusInfo = isRecommendedToday
+    ? {
+        label: '오늘 새로 추천된 룸매예요',
+        badgeClass: 'text-[#0b43a7]',
+        dotClass: 'bg-[#0b43a7]',
+      }
+    : MATCH_STATUS_INFO[person.matchStatus] ?? {
+        label: '매칭 상태를 확인하고 있어요',
+        badgeClass: 'text-fg-primary',
+        dotClass: 'bg-[#8fa2bc]',
+      };
 
   return (
     <article className="w-full min-w-0 overflow-hidden rounded-[clamp(1.375rem,4vw,2rem)] bg-white shadow-[0_20px_45px_rgba(36,69,119,0.16)]">
-      <div className="relative h-[clamp(10.5rem,55vw,18.75rem)] overflow-hidden">
+      <div className="relative h-[clamp(9rem,48vw,15rem)] overflow-hidden">
         <ProfilePlaceholder name={person.name} />
 
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent" />

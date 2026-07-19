@@ -5,6 +5,7 @@ import MatchingCard from './MatchingCard.jsx';
 import { CloseIcon, FilledHeartIcon, MatchingChatIcon } from './MatchingIcons.jsx';
 
 const SWIPE_THRESHOLD = 65;
+const STACK_DEPTH = 3;
 
 const ACTION_CONFIRMATION = {
   HEART: {
@@ -32,7 +33,10 @@ function MatchingCardStack({ people, onStatusRefresh }) {
   const [confirmAction, setConfirmAction] = useState('');
   const dragStartX = useRef(null);
 
-  const visiblePeople = people.map((_, offset) => people[(currentIndex + offset) % people.length]);
+  const visiblePeople = Array.from(
+    { length: Math.min(STACK_DEPTH, people.length) },
+    (_, offset) => people[(currentIndex + offset) % people.length],
+  );
 
   useEffect(() => {
     if (!confirmAction) return undefined;
@@ -130,7 +134,7 @@ function MatchingCardStack({ people, onStatusRefresh }) {
   };
 
   return (
-    <div className="w-full min-w-0 max-w-[clamp(20rem,52vw,28rem)]">
+    <div className="w-[85%] min-w-0 max-w-[21rem]">
       <div
         className="relative touch-pan-y select-none pt-3"
         onPointerDown={handlePointerDown}
@@ -142,8 +146,8 @@ function MatchingCardStack({ people, onStatusRefresh }) {
           const isFront = stackIndex === 0;
           const backTransforms = [
             '',
-            'translate(-3%, 11px) rotate(-4deg) scale(0.985)',
-            'translate(3%, 17px) rotate(4deg) scale(0.965)',
+            'translate(-7%, 11px) rotate(-4deg) scale(0.985)',
+            'translate(7%, 17px) rotate(4deg) scale(0.965)',
           ];
           const frontX = exitDirection ? exitDirection * 460 : dragX;
           const transform = isFront
@@ -190,50 +194,63 @@ function MatchingCardStack({ people, onStatusRefresh }) {
         })}
       </div>
 
-      <div
-        className="mt-[clamp(1.5rem,8vw,2rem)] flex items-center justify-center gap-[clamp(0.75rem,5vw,1.25rem)]"
-        aria-label="매칭 액션"
-      >
-        <button
-          type="button"
-          className="flex h-[clamp(3rem,9vw,4rem)] w-[clamp(3rem,9vw,4rem)] shrink-0 items-center justify-center rounded-full border border-[#dbe5f2] bg-white text-[#2858a5] shadow-[0_8px_22px_rgba(38,73,126,0.13)] transition-[transform,box-shadow,opacity] hover:shadow-[0_10px_25px_rgba(38,73,126,0.18)] active:scale-95 disabled:cursor-wait disabled:opacity-55"
-          aria-label="이번 추천 넘기기"
-          aria-busy={pendingAction === 'REJECT'}
-          disabled={Boolean(pendingAction)}
-          onClick={() => setConfirmAction('REJECT')}
-        >
-          <CloseIcon className={pendingAction === 'REJECT' ? 'animate-pulse' : ''} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="flex h-[clamp(3.75rem,11vw,5rem)] w-[clamp(3.75rem,11vw,5rem)] shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#4c83ce] to-[#2e62ad] text-[#ff668b] shadow-[0_12px_28px_rgba(45,98,176,0.31)] transition-[transform,box-shadow,opacity] hover:shadow-[0_14px_32px_rgba(45,98,176,0.36)] active:scale-95 disabled:cursor-wait disabled:opacity-55"
-          aria-label="좋아요 보내기"
-          aria-busy={pendingAction === 'HEART'}
-          disabled={Boolean(pendingAction)}
-          onClick={() => setConfirmAction('HEART')}
-        >
-          <FilledHeartIcon
-            className={`h-6 w-6 ${pendingAction === 'HEART' ? 'animate-pulse' : ''}`}
-            aria-hidden="true"
-          />
-        </button>
-        <button
-          type="button"
-          className="flex h-[clamp(3rem,9vw,4rem)] w-[clamp(3rem,9vw,4rem)] shrink-0 items-center justify-center rounded-full border border-[#dbe5f2] bg-white text-[#2858a5] shadow-[0_8px_22px_rgba(38,73,126,0.13)] transition-[transform,box-shadow] hover:shadow-[0_10px_25px_rgba(38,73,126,0.18)] active:scale-95"
-          aria-label="채팅으로 이동"
-          onClick={() => navigate('/chat')}
-        >
-          <MatchingChatIcon aria-hidden="true" />
-        </button>
-      </div>
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(72px+env(safe-area-inset-bottom))] z-40 [&_button]:pointer-events-auto">
+        <div className="mx-auto w-full max-w-[600px] px-[clamp(0.75rem,4vw,1.5rem)] pb-2 pt-3">
+          <div
+            className="mx-auto flex w-fit items-center justify-center gap-[clamp(0.75rem,5vw,1.25rem)] rounded-full border border-white/70 px-[clamp(1.25rem,6vw,1.75rem)] py-2.5 shadow-[0_14px_34px_rgba(38,73,126,0.22)]"
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.55)',
+              backgroundImage:
+                'radial-gradient(circle at 18% 22%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 38%),' +
+                'radial-gradient(circle at 78% 18%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 32%),' +
+                'radial-gradient(circle at 62% 82%, rgba(163,196,240,0.55) 0%, rgba(163,196,240,0) 42%),' +
+                'radial-gradient(circle at 92% 70%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 28%),' +
+                'radial-gradient(circle at 28% 88%, rgba(120,160,220,0.35) 0%, rgba(120,160,220,0) 36%)',
+            }}
+            aria-label="매칭 액션"
+          >
+            <button
+              type="button"
+              className="flex h-[clamp(2.75rem,8vw,3.5rem)] w-[clamp(2.75rem,8vw,3.5rem)] shrink-0 items-center justify-center rounded-full border border-[#dbe5f2] bg-white text-[#2858a5] shadow-[0_8px_22px_rgba(38,73,126,0.13)] transition-[transform,box-shadow,opacity] hover:shadow-[0_10px_25px_rgba(38,73,126,0.18)] active:scale-95 disabled:cursor-wait disabled:opacity-55"
+              aria-label="이번 추천 넘기기"
+              aria-busy={pendingAction === 'REJECT'}
+              disabled={Boolean(pendingAction)}
+              onClick={() => setConfirmAction('REJECT')}
+            >
+              <CloseIcon className={pendingAction === 'REJECT' ? 'animate-pulse' : ''} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="flex h-[clamp(3.375rem,9.5vw,4.25rem)] w-[clamp(3.375rem,9.5vw,4.25rem)] shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#4c83ce] to-[#2e62ad] text-[#ff668b] shadow-[0_12px_28px_rgba(45,98,176,0.31)] transition-[transform,box-shadow,opacity] hover:shadow-[0_14px_32px_rgba(45,98,176,0.36)] active:scale-95 disabled:cursor-wait disabled:opacity-55"
+              aria-label="좋아요 보내기"
+              aria-busy={pendingAction === 'HEART'}
+              disabled={Boolean(pendingAction)}
+              onClick={() => setConfirmAction('HEART')}
+            >
+              <FilledHeartIcon
+                className={`h-6 w-6 ${pendingAction === 'HEART' ? 'animate-pulse' : ''}`}
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              type="button"
+              className="flex h-[clamp(2.75rem,8vw,3.5rem)] w-[clamp(2.75rem,8vw,3.5rem)] shrink-0 items-center justify-center rounded-full border border-[#dbe5f2] bg-white text-[#2858a5] shadow-[0_8px_22px_rgba(38,73,126,0.13)] transition-[transform,box-shadow] hover:shadow-[0_10px_25px_rgba(38,73,126,0.18)] active:scale-95"
+              aria-label="채팅으로 이동"
+              onClick={() => navigate('/chat')}
+            >
+              <MatchingChatIcon aria-hidden="true" />
+            </button>
+          </div>
 
-      <p
-        className={`mt-3 min-h-5 text-center text-xs font-semibold text-[#c04a67] ${actionError ? 'visible' : 'invisible'}`}
-        role="alert"
-        aria-live="polite"
-      >
-        {actionError || '요청 처리 상태'}
-      </p>
+          <p
+            className={`mt-2 min-h-5 text-center text-xs font-semibold text-[#c04a67] ${actionError ? 'visible' : 'invisible'}`}
+            role="alert"
+            aria-live="polite"
+          >
+            {actionError || '요청 처리 상태'}
+          </p>
+        </div>
+      </div>
 
       {confirmAction && (
         <div

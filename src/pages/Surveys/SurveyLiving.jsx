@@ -1,17 +1,22 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProgressBar from '../../components/ProgressBar';
 import Slider from './components/Slider';
 import RadioBtnGroup from '../../components/RadioBtnGroup';
 import MoveBtnGroup from '../../components/MoveBtnGroup';
+import { loadSurveyDraft, saveSurveyDraft } from './surveyDraft.js';
 
 function SurveyLiving() {
     const navigate = useNavigate();
-    const [smokingStatus, setSmokingStatus] = useState(0);
-    const [eatingInRoom, setEatingInRoom] = useState(1);
-    const [temperaturePreference, setTemperaturePreference] = useState(1);
-    const [speakerStyle, setSpeakerStyle] = useState(1);
-    const [callIngRoom, setCallIngRoom] = useState(1);
+    const [smokingStatus, setSmokingStatus] = useState(() => loadSurveyDraft().smokingStatus ?? 0);
+    const [eatingInRoom, setEatingInRoom] = useState(() => loadSurveyDraft().eatingInRoom ?? 1);
+    const [temperaturePreference, setTemperaturePreference] = useState(() => loadSurveyDraft().temperaturePreference ?? 1);
+    const [speakerStyle, setSpeakerStyle] = useState(() => loadSurveyDraft().speakerStyle ?? 1);
+    const [callInRoom, setCallInRoom] = useState(() => loadSurveyDraft().callInRoom ?? 1);
+
+    useEffect(() => {
+        saveSurveyDraft({ smokingStatus, eatingInRoom, temperaturePreference, speakerStyle, callInRoom });
+    }, [smokingStatus, eatingInRoom, temperaturePreference, speakerStyle, callInRoom]);
 
     return(
         <main className="relative min-h-dvh p-5 flex flex-col bg-brand-background pb-[calc(16px+env(safe-area-inset-bottom))]">
@@ -80,14 +85,14 @@ function SurveyLiving() {
                     labelStyle="block text-sm font-bold text-fg-basic"
                 />
                 <RadioBtnGroup
-                    name="callingRoom"
+                    name="callInRoom"
                     label="방 안 통화 여부"
                     items={[
                         {item: "자유롭게", value:1},
                         {item: "이어폰", value:2},
                         {item: "나가서", value:3},
                     ]}
-                    onChange={setCallIngRoom}
+                    onChange={setCallInRoom}
                     className="flex-1"
                     layout=""
                     labelStyle="block text-sm font-sans font-bold text-fg-basic"

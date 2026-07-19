@@ -1,14 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Slider from './components/Slider';
 import ProgressBar from '../../components/ProgressBar';
 import MoveBtnGroup from '../../components/MoveBtnGroup';
+import { loadSurveyDraft, saveSurveyDraft } from './surveyDraft.js';
 
 function SurveySleep() {
     const navigate = useNavigate();
-    const [bettime, setBettime] = useState(1);
-    const [snoring, setSnoring] = useState(1);
-    const [sleepTalking, setSleepTalking] = useState(1);
+    const [bedtime, setBedtime] = useState(() => loadSurveyDraft().bedtime ?? 1);
+    const [snoring, setSnoring] = useState(() => loadSurveyDraft().snoring ?? 1);
+    const [sleepTalking, setSleepTalking] = useState(() => loadSurveyDraft().sleepTalking ?? 1);
+
+    useEffect(() => {
+        saveSurveyDraft({ bedtime, snoring, sleepTalking });
+    }, [bedtime, snoring, sleepTalking]);
 
     return(
         <main className="relative min-h-dvh p-5 flex flex-col bg-brand-background pb-[calc(16px+env(safe-area-inset-bottom))]">
@@ -27,11 +32,11 @@ function SurveySleep() {
             <section className="flex flex-col flex-1 gap-8">
                 <Slider
                     range={5}
-                    value={bettime}
+                    value={bedtime}
                     label="취침 시간대"
                     leftDescription="10시 이전"
                     rightDescription="새벽 1시 이후"
-                    onChange={setBettime}
+                    onChange={setBedtime}
                 />
                 <Slider
                     range={5}

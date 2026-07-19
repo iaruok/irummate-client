@@ -1,14 +1,19 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProgressBar from '../../components/ProgressBar';
 import Slider from './components/Slider';
 import RadioBtnGroup from '../../components/RadioBtnGroup';
 import MoveBtnGroup from '../../components/MoveBtnGroup';
+import { loadSurveyDraft, saveSurveyDraft } from './surveyDraft.js';
 
 function SurveyClean() {
     const navigate = useNavigate();
-    const [organizingStyle, setOrganizingStyle] = useState(1);
-    const [showerFrequency, setShowerFrequency] = useState(1);
+    const [organizingStyle, setOrganizingStyle] = useState(() => loadSurveyDraft().organizingStyle ?? 1);
+    const [showerFrequency, setShowerFrequency] = useState(() => loadSurveyDraft().showerFrequency ?? 1);
+
+    useEffect(() => {
+        saveSurveyDraft({ organizingStyle, showerFrequency });
+    }, [organizingStyle, showerFrequency]);
 
     return(
         <main className="relative min-h-dvh p-5 flex flex-col bg-brand-background pb-[calc(16px+env(safe-area-inset-bottom))]">

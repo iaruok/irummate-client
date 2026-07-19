@@ -21,7 +21,7 @@ function Matching() {
     async function loadMatchingPeople() {
       try {
         const matchingPeople = await getMatchingStatus();
-        if (isMounted) setPeople(matchingPeople.slice(0, 3));
+        if (isMounted) setPeople(matchingPeople);
       } catch (error) {
         console.error('추천 목록을 불러오지 못했습니다.', error);
         if (isMounted) {
@@ -53,7 +53,7 @@ function Matching() {
       setExecuteMessage(responseBody?.message || '매칭 성공');
 
       const matchingPeople = await getMatchingStatus();
-      setPeople(matchingPeople.slice(0, 3));
+      setPeople(matchingPeople);
     } catch (error) {
       console.error('오늘의 매칭 요청을 처리하지 못했습니다.', error);
       const message = getMatchingErrorMessage(
@@ -73,11 +73,11 @@ function Matching() {
 
   const refreshMatchingPeople = async () => {
     const matchingPeople = await getMatchingStatus();
-    setPeople(matchingPeople.slice(0, 3));
+    setPeople(matchingPeople);
   };
 
   return (
-    <section className="mx-auto flex min-h-[calc(100dvh-96px)] w-full min-w-0 max-w-[600px] flex-col overflow-x-clip px-[clamp(0.75rem,4vw,1.5rem)] pb-24 pt-[clamp(1rem,4vw,2rem)]">
+    <section className="mx-auto flex min-h-[calc(100dvh-96px)] w-full min-w-0 max-w-[600px] flex-col overflow-x-clip px-[clamp(0.75rem,4vw,1.5rem)] pb-44 pt-[clamp(1rem,4vw,2rem)]">
       <header className="flex min-w-0 items-center justify-between gap-[clamp(0.5rem,3vw,0.75rem)]">
         <div className="min-w-0">
           <h1 className="font-heading text-[clamp(1.125rem,3vw,1.5rem)] font-extrabold tracking-[-0.02em] text-fg-primary">

@@ -1,13 +1,61 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import TextArea from './components/TextArea.jsx'
 import ProgressBar from '../../components/ProgressBar.jsx'
 import MoveBtnGroup from '../../components/MoveBtnGroup.jsx'
 import MultipleBtnGroup from './components/MultipleBtnGroup.jsx';
+import { clearSurveyDraft, loadSurveyDraft, saveSurveyDraft } from './surveyDraft.js';
+import { postSurveys } from '../../api/surveys/surveys.js';
 
 function SurveyIntroduce() {
     const navigate = useNavigate();
-    const [visibleProfileFilelds, setVisibleProfileFields] = useState([]);
+    const [introduce, setIntroduce] = useState(() => loadSurveyDraft().introduce ?? '');
+    const [visibleProfileFields, setVisibleProfileFields] = useState(() => loadSurveyDraft().visibleProfileFields ?? []);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    useEffect(() => {
+        saveSurveyDraft({ introduce, visibleProfileFields });
+    }, [introduce, visibleProfileFields]);
+
+    async function handleNext() {
+        if (!introduce.trim()) {
+            setErrorMessage('자기소개를 입력해주세요.');
+            return;
+        }
+        if (visibleProfileFields.length < 1) {
+            setErrorMessage('중요하게 생각하는 항목을 최소 1개 선택해주세요.');
+            return;
+        }
+
+        const draft = loadSurveyDraft();
+        const requestBody = {
+            smokingStatus: draft.smokingStatus,
+            introduce,
+            answers: {
+                bedtime: draft.bedtime,
+                snoring: draft.snoring,
+                sleepTalking: draft.sleepTalking,
+                organizingStyle: draft.organizingStyle,
+                eatingInRoom: draft.eatingInRoom,
+                temperaturePreference: draft.temperaturePreference,
+                showerFrequency: draft.showerFrequency,
+                speakerStyle: draft.speakerStyle,
+                callInRoom: draft.callInRoom,
+            },
+            visibleProfileFields,
+        };
+
+        try {
+            setErrorMessage('');
+            const responseBody = await postSurveys(requestBody);
+            console.log(responseBody.message);
+            clearSurveyDraft();
+            navigate('/certification');
+        } catch (error) {
+            console.error(error);
+            setErrorMessage('제출에 실패했어요. 잠시 후 다시 시도해주세요.');
+        }
+    }
 
     return (
         <main className="relative min-h-dvh p-5 flex flex-col bg-brand-background pb-[calc(16px+env(safe-area-inset-bottom))]">
@@ -24,31 +72,37 @@ function SurveyIntroduce() {
                 </p>
             </header>
             <section className="flex flex-col flex-1 gap-8">
-                <TextArea 
+                <TextArea
                     label="자기소개"
                     placeholder="본인을 소개해주세요!"
+                    value={introduce}
+                    onChange={setIntroduce}
                 />
                 <MultipleBtnGroup
                     label="중요하게 생각하는 항목"
-                    value={visibleProfileFilelds}
+                    value={visibleProfileFields}
                     items={[
                         {item: "취침 시간대", value:"BEDTIME"},
                         {item: "코골이", value:"SNORING"},
-                        {item: "잠꼬대", value:"SLEEPTALKING"},
-                        {item: "정리정돈수준", value:"ORGANIZINGSTYLE"},
-                        {item: "샤워 빈도", value:"SHOWERFREQUENCY"},
-                        {item: "흡연 여부", value:"SMOKINGSTATUS"},
-                        {item: "방안 취식", value:"EATINGINROOM"},
-                        {item: "실내 온도 선호", value:"TEMPERATUREPREFERENCE"},
-                        {item: "음악·영상 감상 방식", value:"SPEAKERSTYLE"},
-                        {item: "방안 통화 여부", value:"CALLINGINROOM"},
+                        {item: "잠꼬대", value:"SLEEP_TALKING"},
+                        {item: "정리정돈수준", value:"ORGANIZING_STYLE"},
+                        {item: "샤워 빈도", value:"SHOWER_FREQUENCY"},
+                        {item: "방안 취식", value:"EATING_IN_ROOM"},
+                        {item: "실내 온도 선호", value:"TEMPERATURE_PREFERENCE"},
+                        {item: "음악·영상 감상 방식", value:"SPEAKER_STYLE"},
+                        {item: "방안 통화 여부", value:"CALL_IN_ROOM"},
                     ]}
                     onChange={setVisibleProfileFields}
                 />
             </section>
+            {errorMessage && (
+                <p className="mb-3 text-xs font-bold text-[#c04a67]" role="alert">
+                    {errorMessage}
+                </p>
+            )}
             <MoveBtnGroup
                 prev='/surveys/living'
-                onNext={() => navigate('/certification')}
+                onNext={handleNext}
             />
         </main>
     );
