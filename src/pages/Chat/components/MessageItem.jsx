@@ -34,7 +34,7 @@ function MessageItem({
     ? partnerProfileImageUrl
     : fallbackProfileImageUrl;
   const showUnreadMark = isMine && !message.isRead;
-  const showMineMeta = showUnreadMark || showTime;
+  const showMineMeta = isMine && (showUnreadMark || showTime);
 
   return (
     <div className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
