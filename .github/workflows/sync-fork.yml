@@ -18,7 +18,7 @@ jobs:
           git config --global user.email "actions@github.com"
 
       - name: Add upstream repository
-        run: git remote add upstream https://github.com/organization/SnapSum-frontend.git
+        run: git remote add upstream https://github.com/ALOC-dev/5th-project-yulgok-client-2026.git
 
       - name: Fetch upstream changes
         run: git fetch upstream
