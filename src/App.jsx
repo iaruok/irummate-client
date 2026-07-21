@@ -1,6 +1,5 @@
 import {Routes, Route, Navigate} from 'react-router-dom'
 import './App.css'
-import Test from './Test.jsx'
 import Login from './pages/Login/Login.jsx'
 import UserDetails from './pages/UserDetails/UserDetails.jsx'
 import KakaoCallback from './pages/Login/KakaoCallback.jsx'
