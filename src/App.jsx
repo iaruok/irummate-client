@@ -21,6 +21,7 @@ function App() {
   return (
     <>
       <Routes>
+        <Route path="/" element={<Login />} />
         <Route path="/test" element={<Test />}/>
         <Route path="/login" element={<Login />} />
         <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
