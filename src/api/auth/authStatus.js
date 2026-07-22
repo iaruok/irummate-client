@@ -3,7 +3,7 @@ import apiClient from '../client-api.js';
 export async function getCurrentUser() {
   const response = await apiClient.get('/api/auth/status');
 
-  return response.data?.data?.user ?? null;
+  return response.data?.data?.user ?? response.data?.data ?? null;
 }
 
 export async function getCurrentUserId() {

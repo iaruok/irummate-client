@@ -2,11 +2,35 @@ import { useEffect, useRef, useState } from "react";
 import ProgressBar from "../../components/ProgressBar";
 import CertificateBtnGroup from "./components/CertificateBtnGroup";
 import DormitoryImageUploader from "./components/DormitoryImageUploader";
+import { useNavigate } from "react-router-dom";
+import { certificate, getUploadUrl, uploadCertificationImage } from "../../api/certification/certifications.js";
+import { submitCertificationImage } from "../../api/certification/certificationFlow.js";
+import { useAuth } from "../../auth/AuthContext.jsx";
+import { canAccessCertifiedRoutes } from "../../auth/certificationAccess.js";
+
+function getRequestStorageKey(userId) {
+    return `certification-requested:${userId ?? 'current'}`;
+}
 
 function Certification() {
+    const navigate = useNavigate();
+    const { currentUser, refreshCurrentUser } = useAuth();
     const [certificateImage, setCertificateImage] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
+    const [requestedStorageKey, setRequestedStorageKey] = useState(null);
+    const [isWorking, setIsWorking] = useState(false);
+    const [message, setMessage] = useState("");
     const previewUrlRef = useRef("");
+    const currentRequestStorageKey = getRequestStorageKey(currentUser?.id);
+    const isRequested = requestedStorageKey === currentRequestStorageKey
+        || localStorage.getItem(currentRequestStorageKey) === 'true';
+
+    useEffect(() => {
+        if (canAccessCertifiedRoutes(currentUser?.status)) {
+            localStorage.removeItem(getRequestStorageKey(currentUser?.id));
+            navigate('/matching', { replace: true });
+        }
+    }, [currentUser?.id, currentUser?.status, navigate]);
 
     useEffect(() => {
         return () => {
@@ -27,15 +51,44 @@ function Certification() {
         setPreviewUrl(nextPreviewUrl);
     };
 
-    const handleSubmit = () => {
-        if (!certificateImage) {
+    const handleSubmit = async () => {
+        if (isWorking) {
             return;
         }
 
-        const formData = new FormData();
-        formData.append("image", certificateImage);
+        setIsWorking(true);
+        setMessage("");
 
-        // 인증 API가 연결되면 formData를 요청 본문으로 전송합니다.
+        try {
+            if (isRequested) {
+                const user = await refreshCurrentUser();
+
+                if (canAccessCertifiedRoutes(user?.status)) {
+                    localStorage.removeItem(getRequestStorageKey(user?.id));
+                    navigate('/matching', { replace: true });
+                } else {
+                    setMessage('아직 관리자가 인증을 검토하고 있어요.');
+                }
+                return;
+            }
+
+            if (!certificateImage) return;
+
+            await submitCertificationImage(certificateImage, {
+                getUploadUrl,
+                uploadImage: uploadCertificationImage,
+                certificate,
+            });
+
+            localStorage.setItem(currentRequestStorageKey, 'true');
+            setRequestedStorageKey(currentRequestStorageKey);
+            setMessage('인증 요청을 보냈어요. 관리자 승인 후 인증 확인을 눌러주세요.');
+        } catch (error) {
+            console.error('기숙사 인증 요청 실패', error);
+            setMessage(error?.message || '인증 요청 중 문제가 발생했어요. 다시 시도해주세요.');
+        } finally {
+            setIsWorking(false);
+        }
     };
 
     return (
@@ -55,6 +108,12 @@ function Certification() {
                     onChange={handleImageChange}
                 />
 
+                {message && (
+                    <p className="text-center text-xs font-semibold text-fg-basic-muted" role="status">
+                        {message}
+                    </p>
+                )}
+
                 <div className="flex items-start gap-3 rounded-select border border-white bg-white p-4">
                     <span
                         aria-hidden="true"
@@ -72,7 +131,8 @@ function Certification() {
             <CertificateBtnGroup
                 prev="/surveys/introduce"
                 onSubmit={handleSubmit}
-                disabled={!certificateImage}
+                disabled={isWorking || (!isRequested && !certificateImage)}
+                label={isWorking ? '확인 중...' : isRequested ? '인증 확인' : '인증 요청 보내기'}
             />
         </main>
     );

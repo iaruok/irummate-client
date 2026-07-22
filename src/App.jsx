@@ -16,6 +16,7 @@ import { ChatSocketProvider } from './pages/Chat/ChatSocketContext.jsx'
 import MyPage from './pages/MyPage/MyPage.jsx'
 import ProtectedRoute from './auth/ProtectedRoute.jsx';
 import Admin from './pages/Admin/Admin.jsx'
+import CertifiedRoute from './auth/CertifiedRoute.jsx'
 
 function App() {
   return (
@@ -46,19 +47,21 @@ function App() {
         />
         <Route path="/admin" element={<Admin />} />
 
-        <Route
-          path="/chat/:roomId"
-          element={
-            <ChatSocketProvider>
-              <ChatRoom />
-            </ChatSocketProvider>
-          }
-        />
+        <Route element={<CertifiedRoute />}>
+          <Route
+            path="/chat/:roomId"
+            element={
+              <ChatSocketProvider>
+                <ChatRoom />
+              </ChatSocketProvider>
+            }
+          />
 
-        <Route element={<MainLayout />}>
-          <Route path="/matching" element={<Matching />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/my" element={<MyPage />} />
+          <Route element={<MainLayout />}>
+            <Route path="/matching" element={<Matching />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/my" element={<MyPage />} />
+          </Route>
         </Route>
       </Route>
 

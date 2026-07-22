@@ -15,12 +15,14 @@ import {
     AUTH_EXPIRED_EVENT,
     TOKEN_REFRESHED_EVENT,
 } from './authEvents.js';
+import { getCurrentUser } from '../api/auth/authStatus.js';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     // 앱이 처음 실행됐을 땐 인증 확인이 아직 끝나지 않음 -> true
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(true);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -35,15 +37,17 @@ export function AuthProvider({ children }) {
                 accessToken이 localStorage에 없어도 인증상태 확인 요청이 401을 받으면
                 refreshToken 쿠키로 accessToken 재발급을 시도.
                 */
-                await apiClient.get('/api/auth/status');
+                const user = await getCurrentUser();
                 
                 if(isMounted) {
+                    setCurrentUser(user);
                     setIsAuthenticated(true);
                 }
             } catch (error) {
                 console.error('인증 상태 확인 실패', error);
 
                 if(isMounted) {
+                    setCurrentUser(null);
                     setIsAuthenticated(false);
                 }
             } finally {
@@ -57,6 +61,7 @@ export function AuthProvider({ children }) {
             if (!isMounted) return;
 
             setIsAuthenticated(false);
+            setCurrentUser(null);
             setIsCheckingAuth(false);
         }
 
@@ -85,6 +90,13 @@ export function AuthProvider({ children }) {
         setIsCheckingAuth(false);
     }
 
+    async function refreshCurrentUser() {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+        return user;
+    }
+
     async function logout() {
         try {
             await apiClient.post('/api/auth/logout', undefined, {
@@ -92,6 +104,7 @@ export function AuthProvider({ children }) {
             });
         } finally {
             removeAccessToken();
+            setCurrentUser(null);
             setIsAuthenticated(false);
             setIsCheckingAuth(false);
         }
@@ -102,10 +115,12 @@ export function AuthProvider({ children }) {
         accessToken: getAccessToken(),
         isAuthenticated,
         isCheckingAuth,
+        currentUser,
+        refreshCurrentUser,
         login,
         logout,
     }),
-    [isAuthenticated, isCheckingAuth],
+    [currentUser, isAuthenticated, isCheckingAuth],
   );
 
   return (
