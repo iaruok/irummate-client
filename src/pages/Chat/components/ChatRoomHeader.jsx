@@ -13,7 +13,7 @@ function isValidProfileImageUrl(profileImageUrl) {
   }
 }
 
-function ChatRoomHeader({ partnerName, partnerProfileImageUrl, roomStatus, onFinalConfirm }) {
+function ChatRoomHeader({ partnerName, partnerProfileImageUrl, roomStatus, onFinalConfirm, onReject }) {
   const navigate = useNavigate();
   const profileImageUrl = isValidProfileImageUrl(partnerProfileImageUrl)
     ? partnerProfileImageUrl
@@ -52,14 +52,27 @@ function ChatRoomHeader({ partnerName, partnerProfileImageUrl, roomStatus, onFin
         </span>
       </div>
 
-      {onFinalConfirm && (
-        <button
-          type="button"
-          className="min-h-9 shrink-0 rounded-full bg-brand-primary px-3 text-xs font-extrabold text-white shadow-sm transition-transform active:scale-95"
-          onClick={onFinalConfirm}
-        >
-          최종확정
-        </button>
+      {(onReject || onFinalConfirm) && (
+        <div className="flex shrink-0 items-center gap-1.5">
+          {onReject && (
+            <button
+              type="button"
+              className="min-h-9 rounded-full bg-[#edf2f8] px-3 text-xs font-extrabold text-[#9f2847] shadow-sm transition-transform active:scale-95"
+              onClick={onReject}
+            >
+              거절
+            </button>
+          )}
+          {onFinalConfirm && (
+            <button
+              type="button"
+              className="min-h-9 rounded-full bg-brand-primary px-3 text-xs font-extrabold text-white shadow-sm transition-transform active:scale-95"
+              onClick={onFinalConfirm}
+            >
+              최종확정
+            </button>
+          )}
+        </div>
       )}
 
     </header>

@@ -4,6 +4,7 @@ import {
   confirmMatchingRequest,
   getConfirmedPartnerContact,
   getMatchingErrorMessage,
+  sendMatchingRequest,
 } from '../../api/matching/matching.js';
 import {
   getChatErrorMessage,
@@ -140,6 +141,9 @@ function ChatRoom() {
   const [isConfirmingMatch, setIsConfirmingMatch] = useState(false);
   const [isLoadingContact, setIsLoadingContact] = useState(false);
   const [contactErrorMessage, setContactErrorMessage] = useState('');
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isRejectingMatch, setIsRejectingMatch] = useState(false);
+  const [rejectErrorMessage, setRejectErrorMessage] = useState('');
 
   const readTimerRef = useRef(null);
 
@@ -312,6 +316,18 @@ function ChatRoom() {
     setConfirmModalStep('guide');
   }, []);
 
+  const handleOpenRejectConfirm = useCallback(() => {
+    setRejectErrorMessage('');
+    setIsRejectModalOpen(true);
+  }, []);
+
+  const handleCloseRejectConfirm = useCallback(() => {
+    if (isRejectingMatch) return;
+
+    setIsRejectModalOpen(false);
+    setRejectErrorMessage('');
+  }, [isRejectingMatch]);
+
   const handleCloseFinalConfirm = useCallback(() => {
     if (isConfirmingMatch) return;
 
@@ -423,6 +439,34 @@ function ChatRoom() {
     setConfirmModalStep('contact');
   }, []);
 
+  const handleRejectMatch = useCallback(async () => {
+    const receiverId = getReceiverId(room);
+
+    if (!receiverId) {
+      setRejectErrorMessage('상대방 정보를 확인하지 못했어요. 채팅방 목록을 새로고침한 뒤 다시 시도해 주세요.');
+      return;
+    }
+
+    try {
+      setIsRejectingMatch(true);
+      setRejectErrorMessage('');
+
+      await sendMatchingRequest(receiverId, 'REJECT');
+      setRoom((currentRoom) => (currentRoom
+        ? {
+            ...currentRoom,
+            status: 'CLOSED',
+          }
+        : currentRoom));
+      setIsRejectModalOpen(false);
+      setSendNotice('상대방을 거절했어요. 채팅이 종료됩니다.');
+    } catch (error) {
+      setRejectErrorMessage(getMatchingErrorMessage(error, '거절 요청을 처리하지 못했어요.'));
+    } finally {
+      setIsRejectingMatch(false);
+    }
+  }, [room]);
+
 
   const matchInformation = useMemo(() => {
     if (!room?.matchedAt) return '';
@@ -458,6 +502,7 @@ function ChatRoom() {
         partnerProfileImageUrl={room.partnerProfileImageUrl}
         roomStatus={room.status}
         onFinalConfirm={room.status === 'OPEN' ? handleOpenFinalConfirm : undefined}
+        onReject={room.status === 'OPEN' ? handleOpenRejectConfirm : undefined}
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -604,6 +649,53 @@ function ChatRoom() {
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {isRejectModalOpen && (
+        <div
+          className="fixed inset-0 z-[90] flex items-end justify-center bg-[#172238]/35 p-4 backdrop-blur-[2px] sm:items-center"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) handleCloseRejectConfirm();
+          }}
+        >
+          <div
+            className="w-full max-w-[420px] rounded-lg bg-white p-5 shadow-[0_24px_60px_rgba(23,34,56,0.24)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reject-match-title"
+          >
+            <h2 id="reject-match-title" className="text-lg font-extrabold text-fg-primary">
+              상대방을 거절할까요?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-fg-basic-muted">
+              거절하면 이 채팅방은 종료되고 더 이상 메시지를 보낼 수 없어요.
+            </p>
+            {rejectErrorMessage && (
+              <p className="mt-3 rounded-lg bg-[#fff1f3] px-3 py-2 text-xs font-semibold text-[#a83f57]" role="alert">
+                {rejectErrorMessage}
+              </p>
+            )}
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className="min-h-11 rounded-full bg-[#edf2f8] px-4 text-sm font-extrabold text-fg-primary disabled:opacity-60"
+                disabled={isRejectingMatch}
+                onClick={handleCloseRejectConfirm}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="min-h-11 rounded-full bg-[#c21f4b] px-4 text-sm font-extrabold text-white disabled:cursor-wait disabled:opacity-60"
+                disabled={isRejectingMatch}
+                onClick={handleRejectMatch}
+              >
+                {isRejectingMatch ? '처리 중' : '거절'}
+              </button>
+            </div>
           </div>
         </div>
       )}
