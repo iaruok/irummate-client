@@ -69,3 +69,17 @@ export async function sendMatchingRequest(receiverId, matchStatus) {
 
   return response.data;
 }
+
+export async function confirmMatchingRequest(receiverId) {
+  const response = await apiClient.patch(
+    '/api/matching/requests/confirm',
+    { receiverId },
+  );
+
+  return response.data;
+}
+
+export async function getConfirmedPartnerContact(receiverId) {
+  const response = await apiClient.get(`/api/matching/requests/${receiverId}/contact`);
+  return response.data?.data ?? null;
+}

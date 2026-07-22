@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import {
+  confirmMatchingRequest,
+  getConfirmedPartnerContact,
+  getMatchingErrorMessage,
+} from '../../api/matching/matching.js';
+import {
   getChatErrorMessage,
   getChatMessages,
   getChatRooms,
@@ -69,6 +74,10 @@ function formatMatchedDate(value) {
   return date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
 }
 
+function getReceiverId(room) {
+  return room?.partnerId ? String(room.partnerId) : '';
+}
+
 function ChatRoom() {
   const { roomId: roomIdParam } = useParams();
   const location = useLocation();
@@ -83,6 +92,10 @@ function ChatRoom() {
   const [isLoadingPrevious, setIsLoadingPrevious] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [sendNotice, setSendNotice] = useState('');
+  const [confirmModalStep, setConfirmModalStep] = useState('');
+  const [confirmedContact, setConfirmedContact] = useState(null);
+  const [confirmErrorMessage, setConfirmErrorMessage] = useState('');
+  const [isConfirmingMatch, setIsConfirmingMatch] = useState(false);
 
   const readTimerRef = useRef(null);
 
@@ -246,6 +259,53 @@ function ChatRoom() {
     }
   }, [client, roomId]);
 
+  const handleOpenFinalConfirm = useCallback(() => {
+    setConfirmedContact(null);
+    setConfirmErrorMessage('');
+    setConfirmModalStep('guide');
+  }, []);
+
+  const handleCloseFinalConfirm = useCallback(() => {
+    if (isConfirmingMatch) return;
+
+    setConfirmModalStep('');
+    setConfirmErrorMessage('');
+  }, [isConfirmingMatch]);
+
+  const handleFinalConfirm = useCallback(async () => {
+    const receiverId = getReceiverId(room);
+
+    if (!receiverId) {
+      setConfirmErrorMessage('상대방 정보를 확인하지 못했어요. 채팅방 목록을 새로고침한 뒤 다시 시도해 주세요.');
+      return;
+    }
+
+    try {
+      setIsConfirmingMatch(true);
+      setConfirmErrorMessage('');
+
+      await confirmMatchingRequest(receiverId);
+
+      const contact = await getConfirmedPartnerContact(receiverId);
+      setConfirmedContact(contact);
+      setConfirmModalStep('contact');
+      setRoom((currentRoom) => ({
+        ...currentRoom,
+        status: 'CLOSED',
+      }));
+    } catch (error) {
+      if (error?.response?.status === 403) {
+        setConfirmErrorMessage('상대방도 최종확정을 완료하면 연락처가 공개됩니다.');
+        setConfirmModalStep('waiting');
+        return;
+      }
+
+      setConfirmErrorMessage(getMatchingErrorMessage(error, '최종확정을 완료하지 못했어요.'));
+    } finally {
+      setIsConfirmingMatch(false);
+    }
+  }, [room]);
+
   const matchInformation = useMemo(() => {
     if (!room?.matchedAt) return '';
     const percentage = room.matchPercentage != null ? ` · ${room.matchPercentage}% 일치` : '';
@@ -279,6 +339,7 @@ function ChatRoom() {
         partnerName={room.partnerName}
         partnerProfileImageUrl={room.partnerProfileImageUrl}
         roomStatus={room.status}
+        onFinalConfirm={room.status === 'OPEN' ? handleOpenFinalConfirm : undefined}
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -316,6 +377,108 @@ function ChatRoom() {
         disabledReason={room.status === 'CLOSED' ? '종료된 채팅방입니다.' : '채팅 서버에 연결 중이에요.'}
         onSend={handleSend}
       />
+
+      {confirmModalStep && (
+        <div
+          className="fixed inset-0 z-[90] flex items-end justify-center bg-[#172238]/35 p-4 backdrop-blur-[2px] sm:items-center"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) handleCloseFinalConfirm();
+          }}
+        >
+          <div
+            className="w-full max-w-[420px] rounded-lg bg-white p-5 shadow-[0_24px_60px_rgba(23,34,56,0.24)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="final-confirm-title"
+          >
+            {confirmModalStep === 'guide' && (
+              <>
+                <h2 id="final-confirm-title" className="text-lg font-extrabold text-fg-primary">
+                  최종확정 전에 확인해 주세요
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-fg-basic-muted">
+                  최종확정 후 두 사람이 모두 확정하면 서로의 이름과 전화번호가 공개돼요. 실제 기숙사 룸메이트 신청은 학교 안내에 따라 별도 구글폼으로 진행해야 합니다.
+                </p>
+                {confirmErrorMessage && (
+                  <p className="mt-3 rounded-lg bg-[#fff1f3] px-3 py-2 text-xs font-semibold text-[#a83f57]" role="alert">
+                    {confirmErrorMessage}
+                  </p>
+                )}
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-full bg-[#edf2f8] px-4 text-sm font-extrabold text-fg-primary disabled:opacity-60"
+                    disabled={isConfirmingMatch}
+                    onClick={handleCloseFinalConfirm}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-full bg-brand-primary px-4 text-sm font-extrabold text-white disabled:cursor-wait disabled:opacity-60"
+                    disabled={isConfirmingMatch}
+                    onClick={handleFinalConfirm}
+                  >
+                    {isConfirmingMatch ? '확정 중' : '최종확정'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {confirmModalStep === 'waiting' && (
+              <>
+                <h2 id="final-confirm-title" className="text-lg font-extrabold text-fg-primary">
+                  상대방 확정 대기중
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-fg-basic-muted">
+                  내 최종확정은 완료됐어요. 상대방도 최종확정을 완료하면 연락처가 공개됩니다.
+                </p>
+                {confirmErrorMessage && (
+                  <p className="mt-3 rounded-lg bg-[#fff7df] px-3 py-2 text-xs font-semibold text-[#8b6200]">
+                    {confirmErrorMessage}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  className="mt-5 min-h-11 w-full rounded-full bg-brand-primary px-4 text-sm font-extrabold text-white"
+                  onClick={handleCloseFinalConfirm}
+                >
+                  확인
+                </button>
+              </>
+            )}
+
+            {confirmModalStep === 'contact' && (
+              <>
+                <h2 id="final-confirm-title" className="text-lg font-extrabold text-fg-primary">
+                  최종확정이 완료됐어요
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-fg-basic-muted">
+                  아래 연락처로 서로 확인한 뒤, 기숙사 룸메이트 신청은 별도 구글폼으로 꼭 진행해 주세요.
+                </p>
+                <dl className="mt-4 rounded-lg bg-[#f5f8fc] px-4 py-3 text-sm">
+                  <div className="flex justify-between gap-4 py-1">
+                    <dt className="font-bold text-fg-basic-muted">이름</dt>
+                    <dd className="font-extrabold text-fg-primary">{confirmedContact?.partnerName || room.partnerName}</dd>
+                  </div>
+                  <div className="flex justify-between gap-4 py-1">
+                    <dt className="font-bold text-fg-basic-muted">전화번호</dt>
+                    <dd className="font-extrabold text-fg-primary">{confirmedContact?.partnerPhoneNumber || '-'}</dd>
+                  </div>
+                </dl>
+                <button
+                  type="button"
+                  className="mt-5 min-h-11 w-full rounded-full bg-brand-primary px-4 text-sm font-extrabold text-white"
+                  onClick={handleCloseFinalConfirm}
+                >
+                  확인
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

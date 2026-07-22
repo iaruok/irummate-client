@@ -44,6 +44,7 @@ function formatLastMessageTime(lastMessageTime) {
 }
 
 function ChatListItem({
+  partnerId,
   partnerProfileImageUrl,
   partnerName,
   lastMessage,
@@ -69,6 +70,7 @@ function ChatListItem({
           state: {
             room: {
               roomId,
+              partnerId,
               partnerProfileImageUrl,
               partnerName,
               lastMessage,

@@ -13,7 +13,7 @@ function isValidProfileImageUrl(profileImageUrl) {
   }
 }
 
-function ChatRoomHeader({ partnerName, partnerProfileImageUrl, roomStatus }) {
+function ChatRoomHeader({ partnerName, partnerProfileImageUrl, roomStatus, onFinalConfirm }) {
   const navigate = useNavigate();
   const profileImageUrl = isValidProfileImageUrl(partnerProfileImageUrl)
     ? partnerProfileImageUrl
@@ -51,6 +51,16 @@ function ChatRoomHeader({ partnerName, partnerProfileImageUrl, roomStatus }) {
           {roomStatus === 'CLOSED' ? '종료된 채팅' : '채팅 중'}
         </span>
       </div>
+
+      {onFinalConfirm && (
+        <button
+          type="button"
+          className="min-h-9 shrink-0 rounded-full bg-brand-primary px-3 text-xs font-extrabold text-white shadow-sm transition-transform active:scale-95"
+          onClick={onFinalConfirm}
+        >
+          최종확정
+        </button>
+      )}
 
       <button
         type="button"
