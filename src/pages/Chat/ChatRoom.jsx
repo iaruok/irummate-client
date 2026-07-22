@@ -82,14 +82,39 @@ function isDocumentVisible() {
   return typeof document === 'undefined' || document.visibilityState === 'visible';
 }
 
-function ChatClosedNotice() {
+function ChatClosedNotice({ contact, contactErrorMessage, isLoadingContact, onShowContact, partnerName }) {
   return (
     <div className="border-t border-[#dce5f1] bg-white px-4 py-4 pb-[max(16px,env(safe-area-inset-bottom))]">
       <div className="rounded-2xl bg-[#edf3fb] px-4 py-3 text-center">
         <p className="text-sm font-extrabold text-fg-primary">최종확정되어 채팅이 종료됐어요.</p>
-        <p className="mt-1 text-xs font-semibold text-fg-basic-muted">
-          공개된 연락처로 이후 일정을 조율해 주세요.
-        </p>
+        {contact ? (
+          <div className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-left text-xs font-bold text-fg-primary">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-fg-basic-muted">이름</span>
+              <span>{contact.partnerName || partnerName}</span>
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <span className="text-fg-basic-muted">전화번호</span>
+              <span>{contact.partnerPhoneNumber || '-'}</span>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-1 text-xs font-semibold text-fg-basic-muted">
+            {isLoadingContact ? '공개된 연락처를 확인하는 중이에요.' : '공개된 연락처로 이후 일정을 조율해 주세요.'}
+          </p>
+        )}
+        {contactErrorMessage && (
+          <p className="mt-2 text-xs font-bold text-[#a83f57]">{contactErrorMessage}</p>
+        )}
+        {contact && (
+          <button
+            type="button"
+            className="mt-3 min-h-9 rounded-full bg-brand-primary px-4 text-xs font-extrabold text-white"
+            onClick={onShowContact}
+          >
+            연락처 크게 보기
+          </button>
+        )}
       </div>
     </div>
   );
@@ -113,6 +138,8 @@ function ChatRoom() {
   const [confirmedContact, setConfirmedContact] = useState(null);
   const [confirmErrorMessage, setConfirmErrorMessage] = useState('');
   const [isConfirmingMatch, setIsConfirmingMatch] = useState(false);
+  const [isLoadingContact, setIsLoadingContact] = useState(false);
+  const [contactErrorMessage, setContactErrorMessage] = useState('');
 
   const readTimerRef = useRef(null);
 
@@ -292,17 +319,32 @@ function ChatRoom() {
     setConfirmErrorMessage('');
   }, [isConfirmingMatch]);
 
-  const showConfirmedContact = useCallback(async (receiverId) => {
+  const loadConfirmedContact = useCallback(async (receiverId, { openModal = false } = {}) => {
+    setIsLoadingContact(true);
+    setContactErrorMessage('');
+
     const contact = await getConfirmedPartnerContact(receiverId);
     setConfirmedContact(contact);
-    setConfirmModalStep('contact');
+    if (openModal) setConfirmModalStep('contact');
     setRoom((currentRoom) => (currentRoom
       ? {
           ...currentRoom,
           status: 'CLOSED',
         }
       : currentRoom));
+
+    setIsLoadingContact(false);
+    return contact;
   }, []);
+
+  const showConfirmedContact = useCallback(async (receiverId) => {
+    try {
+      await loadConfirmedContact(receiverId, { openModal: true });
+    } catch (error) {
+      setIsLoadingContact(false);
+      throw error;
+    }
+  }, [loadConfirmedContact]);
 
   const handleFinalConfirm = useCallback(async () => {
     const receiverId = getReceiverId(room);
@@ -344,6 +386,43 @@ function ChatRoom() {
       setIsConfirmingMatch(false);
     }
   }, [room, showConfirmedContact]);
+
+  useEffect(() => {
+    const receiverId = getReceiverId(room);
+    if (room?.status !== 'CLOSED' || !receiverId || confirmedContact || isLoadingContact) return undefined;
+
+    let isActive = true;
+    const contactTimer = window.setTimeout(() => {
+      if (!isActive) return;
+
+      setIsLoadingContact(true);
+      setContactErrorMessage('');
+    }, 0);
+
+    getConfirmedPartnerContact(receiverId)
+      .then((contact) => {
+        if (isActive) setConfirmedContact(contact);
+      })
+      .catch((error) => {
+        if (isActive) {
+          setContactErrorMessage(getMatchingErrorMessage(error, '연락처를 불러오지 못했어요.'));
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsLoadingContact(false);
+      });
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(contactTimer);
+    };
+  }, [confirmedContact, isLoadingContact, room]);
+
+  const handleShowContact = useCallback(() => {
+    setConfirmErrorMessage('');
+    setConfirmModalStep('contact');
+  }, []);
+
 
   const matchInformation = useMemo(() => {
     if (!room?.matchedAt) return '';
@@ -412,7 +491,13 @@ function ChatRoom() {
         </p>
       )}
       {room.status === 'CLOSED' ? (
-        <ChatClosedNotice />
+        <ChatClosedNotice
+          contact={confirmedContact}
+          contactErrorMessage={contactErrorMessage}
+          isLoadingContact={isLoadingContact}
+          onShowContact={handleShowContact}
+          partnerName={room.partnerName}
+        />
       ) : (
         <MessageInput
           disabled={isInputDisabled}

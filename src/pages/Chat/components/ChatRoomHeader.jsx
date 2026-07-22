@@ -62,17 +62,6 @@ function ChatRoomHeader({ partnerName, partnerProfileImageUrl, roomStatus, onFin
         </button>
       )}
 
-      <button
-        type="button"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-fg-basic-muted transition-colors hover:bg-ui-sub"
-        aria-label="채팅방 메뉴"
-      >
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <circle cx="5" cy="12" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="19" cy="12" r="2" />
-        </svg>
-      </button>
     </header>
   );
 }
