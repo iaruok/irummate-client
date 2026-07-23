@@ -12,9 +12,11 @@ import {
     saveSurveyDraft,
 } from './surveyDraft.js';
 import { getSurveyErrorMessage, postSurveys } from '../../api/surveys/surveys.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
 
 function SurveyIntroduce() {
     const navigate = useNavigate();
+    const { refreshCurrentUser } = useAuth();
     const [introduce, setIntroduce] = useState(() => loadSurveyDraft().introduce ?? '');
     const [visibleProfileFields, setVisibleProfileFields] = useState(() => loadSurveyDraft().visibleProfileFields ?? []);
     const [errorMessage, setErrorMessage] = useState('');
@@ -55,6 +57,7 @@ function SurveyIntroduce() {
             setIsSubmitting(true);
             setErrorMessage('');
             await postSurveys(requestBody);
+            await refreshCurrentUser();
             clearSurveyDraft();
             navigate('/certification');
         } catch (error) {
