@@ -4,6 +4,7 @@ import {
   confirmMatchingRequest,
   getConfirmedPartnerContact,
   getMatchingErrorMessage,
+  sendMatchingRequest,
 } from '../../api/matching/matching.js';
 import {
   getChatErrorMessage,
@@ -82,6 +83,18 @@ function isDocumentVisible() {
   return typeof document === 'undefined' || document.visibilityState === 'visible';
 }
 
+function isFinalConfirmedRoom(room) {
+  return room?.matchStatus === 'FINAL_CONFIRMED' || room?.status === 'CLOSED';
+}
+
+function isWaitingForPartnerConfirm(room) {
+  return room?.matchStatus === 'CONFIRM_PENDING';
+}
+
+function canDecideMatch(room) {
+  return room?.status === 'OPEN' && room?.matchStatus === 'HEART_MATCHED';
+}
+
 function ChatClosedNotice({ contact, contactErrorMessage, isLoadingContact, onShowContact, partnerName }) {
   return (
     <div className="border-t border-[#dce5f1] bg-white px-4 py-4 pb-[max(16px,env(safe-area-inset-bottom))]">
@@ -120,6 +133,19 @@ function ChatClosedNotice({ contact, contactErrorMessage, isLoadingContact, onSh
   );
 }
 
+function ChatWaitingNotice() {
+  return (
+    <div className="border-t border-[#dce5f1] bg-white px-4 py-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+      <div className="rounded-2xl bg-[#fff7df] px-4 py-3 text-center">
+        <p className="text-sm font-extrabold text-fg-primary">상대방 확정 대기중이에요.</p>
+        <p className="mt-1 text-xs font-semibold text-[#8b6200]">
+          상대방도 최종확정을 완료하면 연락처가 공개됩니다.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function ChatRoom() {
   const { roomId: roomIdParam } = useParams();
   const location = useLocation();
@@ -140,11 +166,15 @@ function ChatRoom() {
   const [isConfirmingMatch, setIsConfirmingMatch] = useState(false);
   const [isLoadingContact, setIsLoadingContact] = useState(false);
   const [contactErrorMessage, setContactErrorMessage] = useState('');
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isRejectingMatch, setIsRejectingMatch] = useState(false);
+  const [rejectErrorMessage, setRejectErrorMessage] = useState('');
 
   const readTimerRef = useRef(null);
+  const contactRequestKeyRef = useRef('');
 
   const markRoomAsReadSoon = useCallback(() => {
-    if (!currentUserId || room?.status === 'CLOSED' || !isDocumentVisible()) return;
+    if (!currentUserId || isFinalConfirmedRoom(room) || !isDocumentVisible()) return;
 
     window.clearTimeout(readTimerRef.current);
     readTimerRef.current = window.setTimeout(() => {
@@ -159,7 +189,7 @@ function ChatRoom() {
           console.info('메시지 읽음 처리를 완료하지 못했습니다.', error);
         });
     }, 1200);
-  }, [currentUserId, refreshTotalUnreadCount, room?.status, roomId]);
+  }, [currentUserId, refreshTotalUnreadCount, room, roomId]);
 
   const syncLatestMessages = useCallback(async () => {
     const result = await getChatMessages(roomId);
@@ -221,7 +251,7 @@ function ChatRoom() {
   }, [passedRoom, roomId]);
 
   useEffect(() => {
-    if (!room || !currentUserId || room.status === 'CLOSED' || !isDocumentVisible()) return;
+    if (!room || !currentUserId || isFinalConfirmedRoom(room) || !isDocumentVisible()) return;
     markRoomAsReadSoon();
   }, [currentUserId, markRoomAsReadSoon, room]);
 
@@ -255,7 +285,7 @@ function ChatRoom() {
     if (!isConnected || !room || !currentUserId) return undefined;
 
     const readStatusSyncTimer = window.setInterval(() => {
-      if (room.status === 'CLOSED' || !isDocumentVisible()) return;
+      if (isFinalConfirmedRoom(room) || !isDocumentVisible()) return;
 
       syncLatestMessages().catch((error) => {
         console.info('메시지 읽음 상태를 동기화하지 못했습니다.', error);
@@ -312,6 +342,18 @@ function ChatRoom() {
     setConfirmModalStep('guide');
   }, []);
 
+  const handleOpenRejectConfirm = useCallback(() => {
+    setRejectErrorMessage('');
+    setIsRejectModalOpen(true);
+  }, []);
+
+  const handleCloseRejectConfirm = useCallback(() => {
+    if (isRejectingMatch) return;
+
+    setIsRejectModalOpen(false);
+    setRejectErrorMessage('');
+  }, [isRejectingMatch]);
+
   const handleCloseFinalConfirm = useCallback(() => {
     if (isConfirmingMatch) return;
 
@@ -329,6 +371,7 @@ function ChatRoom() {
     setRoom((currentRoom) => (currentRoom
       ? {
           ...currentRoom,
+          matchStatus: 'FINAL_CONFIRMED',
           status: 'CLOSED',
         }
       : currentRoom));
@@ -389,7 +432,12 @@ function ChatRoom() {
 
   useEffect(() => {
     const receiverId = getReceiverId(room);
-    if (room?.status !== 'CLOSED' || !receiverId || confirmedContact || isLoadingContact) return undefined;
+    if (!isFinalConfirmedRoom(room) || !receiverId || confirmedContact) return undefined;
+
+    const requestKey = `${roomId}:${receiverId}`;
+    if (contactRequestKeyRef.current === requestKey) return undefined;
+
+    contactRequestKeyRef.current = requestKey;
 
     let isActive = true;
     const contactTimer = window.setTimeout(() => {
@@ -397,31 +445,61 @@ function ChatRoom() {
 
       setIsLoadingContact(true);
       setContactErrorMessage('');
-    }, 0);
 
-    getConfirmedPartnerContact(receiverId)
-      .then((contact) => {
-        if (isActive) setConfirmedContact(contact);
-      })
-      .catch((error) => {
-        if (isActive) {
-          setContactErrorMessage(getMatchingErrorMessage(error, '연락처를 불러오지 못했어요.'));
-        }
-      })
-      .finally(() => {
-        if (isActive) setIsLoadingContact(false);
-      });
+      getConfirmedPartnerContact(receiverId)
+        .then((contact) => {
+          if (isActive) setConfirmedContact(contact);
+        })
+        .catch((error) => {
+          if (isActive) {
+            contactRequestKeyRef.current = '';
+            setContactErrorMessage(getMatchingErrorMessage(error, '연락처를 불러오지 못했어요.'));
+          }
+        })
+        .finally(() => {
+          if (isActive) setIsLoadingContact(false);
+        });
+    }, 0);
 
     return () => {
       isActive = false;
       window.clearTimeout(contactTimer);
     };
-  }, [confirmedContact, isLoadingContact, room]);
+  }, [confirmedContact, room, roomId]);
 
   const handleShowContact = useCallback(() => {
     setConfirmErrorMessage('');
     setConfirmModalStep('contact');
   }, []);
+
+  const handleRejectMatch = useCallback(async () => {
+    const receiverId = getReceiverId(room);
+
+    if (!receiverId) {
+      setRejectErrorMessage('상대방 정보를 확인하지 못했어요. 채팅방 목록을 새로고침한 뒤 다시 시도해 주세요.');
+      return;
+    }
+
+    try {
+      setIsRejectingMatch(true);
+      setRejectErrorMessage('');
+
+      await sendMatchingRequest(receiverId, 'REJECT');
+      setRoom((currentRoom) => (currentRoom
+        ? {
+            ...currentRoom,
+            matchStatus: 'CLOSED',
+            status: 'CLOSED',
+          }
+        : currentRoom));
+      setIsRejectModalOpen(false);
+      setSendNotice('상대방을 거절했어요. 채팅이 종료됩니다.');
+    } catch (error) {
+      setRejectErrorMessage(getMatchingErrorMessage(error, '거절 요청을 처리하지 못했어요.'));
+    } finally {
+      setIsRejectingMatch(false);
+    }
+  }, [room]);
 
 
   const matchInformation = useMemo(() => {
@@ -430,7 +508,10 @@ function ChatRoom() {
     return `${formatMatchedDate(room.matchedAt)}에 서로 매칭되었어요${percentage}`;
   }, [room]);
 
-  const isInputDisabled = room?.status === 'CLOSED' || !isConnected;
+  const shouldShowDecisionActions = canDecideMatch(room);
+  const shouldShowWaitingNotice = isWaitingForPartnerConfirm(room);
+  const shouldShowClosedNotice = isFinalConfirmedRoom(room);
+  const isInputDisabled = shouldShowClosedNotice || shouldShowWaitingNotice || !isConnected;
 
   if (isLoading) {
     return (
@@ -457,7 +538,9 @@ function ChatRoom() {
         partnerName={room.partnerName}
         partnerProfileImageUrl={room.partnerProfileImageUrl}
         roomStatus={room.status}
-        onFinalConfirm={room.status === 'OPEN' ? handleOpenFinalConfirm : undefined}
+        matchStatus={room.matchStatus}
+        onFinalConfirm={shouldShowDecisionActions ? handleOpenFinalConfirm : undefined}
+        onReject={shouldShowDecisionActions ? handleOpenRejectConfirm : undefined}
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -490,7 +573,7 @@ function ChatRoom() {
           {sendNotice}
         </p>
       )}
-      {room.status === 'CLOSED' ? (
+      {shouldShowClosedNotice ? (
         <ChatClosedNotice
           contact={confirmedContact}
           contactErrorMessage={contactErrorMessage}
@@ -498,6 +581,8 @@ function ChatRoom() {
           onShowContact={handleShowContact}
           partnerName={room.partnerName}
         />
+      ) : shouldShowWaitingNotice ? (
+        <ChatWaitingNotice />
       ) : (
         <MessageInput
           disabled={isInputDisabled}
@@ -604,6 +689,53 @@ function ChatRoom() {
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {isRejectModalOpen && (
+        <div
+          className="fixed inset-0 z-[90] flex items-end justify-center bg-[#172238]/35 p-4 backdrop-blur-[2px] sm:items-center"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) handleCloseRejectConfirm();
+          }}
+        >
+          <div
+            className="w-full max-w-[420px] rounded-lg bg-white p-5 shadow-[0_24px_60px_rgba(23,34,56,0.24)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reject-match-title"
+          >
+            <h2 id="reject-match-title" className="text-lg font-extrabold text-fg-primary">
+              상대방을 거절할까요?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-fg-basic-muted">
+              거절하면 이 채팅방은 종료되고 더 이상 메시지를 보낼 수 없어요.
+            </p>
+            {rejectErrorMessage && (
+              <p className="mt-3 rounded-lg bg-[#fff1f3] px-3 py-2 text-xs font-semibold text-[#a83f57]" role="alert">
+                {rejectErrorMessage}
+              </p>
+            )}
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className="min-h-11 rounded-full bg-[#edf2f8] px-4 text-sm font-extrabold text-fg-primary disabled:opacity-60"
+                disabled={isRejectingMatch}
+                onClick={handleCloseRejectConfirm}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="min-h-11 rounded-full bg-[#c21f4b] px-4 text-sm font-extrabold text-white disabled:cursor-wait disabled:opacity-60"
+                disabled={isRejectingMatch}
+                onClick={handleRejectMatch}
+              >
+                {isRejectingMatch ? '처리 중' : '거절'}
+              </button>
+            </div>
           </div>
         </div>
       )}
