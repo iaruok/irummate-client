@@ -6,9 +6,11 @@ import RadioBtnGroup from '../../components/RadioBtnGroup.jsx';
 import DropDownMenu from './components/DropDownMenu.jsx';
 import MoveBtnGroup from '../../components/MoveBtnGroup.jsx';
 import { postUserDetails } from '../../api/users/userDetails.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
 
 function UserDetails() {
     const navigate = useNavigate();
+    const { refreshCurrentUser } = useAuth();
     const [realName, setRealName] = useState('');
     const [age, setAge] = useState(0);
     const [gender, setGender] = useState('');
@@ -28,6 +30,7 @@ function UserDetails() {
         try {
             const responseBody = await postUserDetails(requestBody);
             console.log(responseBody.message);
+            await refreshCurrentUser();
             navigate('/surveys/sleep');
         } catch (error) {
             console.error(error);
