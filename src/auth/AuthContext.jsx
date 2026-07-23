@@ -1,5 +1,6 @@
 import {
     createContext,
+    useCallback,
     useContext,
     useEffect,
     useMemo,
@@ -16,111 +17,121 @@ import {
     TOKEN_REFRESHED_EVENT,
 } from './authEvents.js';
 import { getCurrentUser } from '../api/auth/authStatus.js';
+import { createAuthOperationCoordinator } from './authOperationCoordinator.js';
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     // 앱이 처음 실행됐을 땐 인증 확인이 아직 끝나지 않음 -> true
-    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(true);
-    const [currentUser, setCurrentUser] = useState(null);
+    const [authState, setAuthState] = useState({
+        currentUser: null,
+        isAuthenticated: true,
+        isCheckingAuth: true,
+    });
+    const {
+        currentUser,
+        isAuthenticated,
+        isCheckingAuth,
+    } = authState;
+    const [authCoordinator] = useState(() => (
+        createAuthOperationCoordinator({
+            commitAuthenticated(user) {
+                setAuthState({
+                    currentUser: user,
+                    isAuthenticated: true,
+                    isCheckingAuth: false,
+                });
+            },
+            commitTokenRefreshed() {
+                setAuthState((currentState) => ({
+                    ...currentState,
+                    isAuthenticated: true,
+                }));
+            },
+            commitUnauthenticated() {
+                setAuthState({
+                    currentUser: null,
+                    isAuthenticated: false,
+                    isCheckingAuth: false,
+                });
+            },
+            loadCurrentUser: getCurrentUser,
+            removeAccessToken,
+            setAccessToken,
+        })
+    ));
 
     useEffect(() => {
-        let isMounted = true;
-        
-        async function checkAuthentication() {
-            try {
-                /*
-                이미 있는 인증상태 확인 api
+        window.addEventListener(
+            AUTH_EXPIRED_EVENT,
+            authCoordinator.handleAuthExpired,
+        );
+        window.addEventListener(
+            TOKEN_REFRESHED_EVENT,
+            authCoordinator.handleTokenRefreshed,
+        );
 
-                accessToken이 만료됐다면 apiClient의 인터셉터가 자동으로 refresh 후 이 요청 다시 실행
-                
-                accessToken이 localStorage에 없어도 인증상태 확인 요청이 401을 받으면
-                refreshToken 쿠키로 accessToken 재발급을 시도.
-                */
-                const user = await getCurrentUser();
-                
-                if(isMounted) {
-                    setCurrentUser(user);
-                    setIsAuthenticated(true);
-                }
-            } catch (error) {
-                console.error('인증 상태 확인 실패', error);
-
-                if(isMounted) {
-                    setCurrentUser(null);
-                    setIsAuthenticated(false);
-                }
-            } finally {
-                if (isMounted) {
-                    setIsCheckingAuth(false);
-                }
-            }
-        }
-
-        function handleAuthExpired() {
-            if (!isMounted) return;
-
-            setIsAuthenticated(false);
-            setCurrentUser(null);
-            setIsCheckingAuth(false);
-        }
-
-        function handleTokenRefreshed() {
-            if (!isMounted) return;
-
-            setIsAuthenticated(true);
-        }
-
-        window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
-        window.addEventListener(TOKEN_REFRESHED_EVENT, handleTokenRefreshed);
-
-        checkAuthentication();
+        authCoordinator.bootstrap().catch((error) => {
+            console.error('인증 상태 확인 실패', error);
+        });
 
         return () => {
-            isMounted = false;
-
-            window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
-            window.removeEventListener(TOKEN_REFRESHED_EVENT, handleTokenRefreshed);
+            window.removeEventListener(
+                AUTH_EXPIRED_EVENT,
+                authCoordinator.handleAuthExpired,
+            );
+            window.removeEventListener(
+                TOKEN_REFRESHED_EVENT,
+                authCoordinator.handleTokenRefreshed,
+            );
         };
+    }, [authCoordinator]);
+
+    const refreshCurrentUser = useCallback(async () => {
+        const user = await getCurrentUser();
+
+        setAuthState((currentState) => ({
+            ...currentState,
+            currentUser: user,
+            isAuthenticated: true,
+        }));
+
+        return user;
     }, []);
 
-    function login(accessToken) {
-        setAccessToken(accessToken);
-        setIsAuthenticated(true);
-        setIsCheckingAuth(false);
-    }
-
-    async function refreshCurrentUser() {
-        const user = await getCurrentUser();
-        setCurrentUser(user);
-        setIsAuthenticated(true);
-        return user;
-    }
-
-    async function logout() {
+    const logout = useCallback(async () => {
         try {
             await apiClient.post('/api/auth/logout', undefined, {
                 withCredentials: true,
             });
         } finally {
             removeAccessToken();
-            setCurrentUser(null);
-            setIsAuthenticated(false);
-            setIsCheckingAuth(false);
+            setAuthState({
+                currentUser: null,
+                isAuthenticated: false,
+                isCheckingAuth: false,
+            });
         }
-    }
+    }, []);
 
   const value = useMemo(
     () => ({
         accessToken: getAccessToken(),
+        completeLogin: authCoordinator.completeLogin,
         isAuthenticated,
         isCheckingAuth,
         currentUser,
         refreshCurrentUser,
-        login,
         logout,
     }),
-    [currentUser, isAuthenticated, isCheckingAuth],
+    [
+        authCoordinator,
+        currentUser,
+        isAuthenticated,
+        isCheckingAuth,
+        logout,
+        refreshCurrentUser,
+    ],
   );
 
   return (
