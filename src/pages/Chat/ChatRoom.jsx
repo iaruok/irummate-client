@@ -21,6 +21,8 @@ import ChatRoomHeader from './components/ChatRoomHeader.jsx';
 import MessageInput from './components/MessageInput.jsx';
 import MessageList from './components/MessageList.jsx';
 
+const FINAL_CONFIRM_FORM_NOTICE = '연락처가 공개되어도 기숙사 룸메이트 신청이 완료된 것은 아닙니다. 학교 안내에 따라 별도 구글폼 신청을 꼭 진행해 주세요.';
+
 function sortMessages(messages) {
   return [...messages].sort((messageA, messageB) => {
     const timeDifference = Date.parse(messageA.createdAt) - Date.parse(messageB.createdAt);
@@ -126,7 +128,7 @@ function ChatClosedNotice({ contact, contactErrorMessage, isLoadingContact, onSh
               </div>
             </div>
             <div className="mt-3 rounded-xl bg-[#fff7df] px-3 py-2 text-xs font-extrabold leading-5 text-[#8b6200]">
-              연락처 확인만으로 기숙사 룸메이트 신청이 완료되지 않아요. 학교 안내에 따라 별도 구글폼 신청까지 꼭 진행해 주세요.
+              {FINAL_CONFIRM_FORM_NOTICE}
             </div>
           </>
         ) : (
@@ -675,7 +677,7 @@ function ChatRoom() {
                   최종확정 후 두 사람이 모두 확정하면 서로의 이름과 전화번호가 공개돼요.
                 </p>
                 <div className="mt-4 rounded-lg bg-[#fff7df] px-3 py-3 text-sm font-extrabold leading-6 text-[#8b6200]">
-                  중요: 연락처 확인은 매칭 확정용이며, 실제 기숙사 룸메이트 신청은 학교 안내에 따라 별도 구글폼으로 반드시 진행해야 합니다.
+                  중요: {FINAL_CONFIRM_FORM_NOTICE}
                 </div>
                 {confirmErrorMessage && (
                   <p className="mt-3 rounded-lg bg-[#fff1f3] px-3 py-2 text-xs font-semibold text-[#a83f57]" role="alert">
@@ -745,7 +747,7 @@ function ChatRoom() {
                   </div>
                 </dl>
                 <div className="mt-3 rounded-lg bg-[#fff7df] px-3 py-3 text-sm font-extrabold leading-6 text-[#8b6200]">
-                  연락처가 공개되어도 신청이 완료된 것은 아닙니다. 기숙사 룸메이트 신청은 별도 구글폼으로 꼭 제출해 주세요.
+                  {FINAL_CONFIRM_FORM_NOTICE}
                 </div>
                 <button
                   type="button"
