@@ -114,16 +114,21 @@ function ChatClosedNotice({ contact, contactErrorMessage, isLoadingContact, onSh
       <div className="rounded-2xl bg-[#edf3fb] px-4 py-3 text-center">
         <p className="text-sm font-extrabold text-fg-primary">최종확정되어 채팅이 종료됐어요.</p>
         {contact ? (
-          <div className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-left text-xs font-bold text-fg-primary">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-fg-basic-muted">이름</span>
-              <span>{contact.partnerName || partnerName}</span>
+          <>
+            <div className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-left text-xs font-bold text-fg-primary">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-fg-basic-muted">이름</span>
+                <span>{contact.partnerName || partnerName}</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <span className="text-fg-basic-muted">전화번호</span>
+                <span>{contact.partnerPhoneNumber || '-'}</span>
+              </div>
             </div>
-            <div className="mt-1 flex items-center justify-between gap-3">
-              <span className="text-fg-basic-muted">전화번호</span>
-              <span>{contact.partnerPhoneNumber || '-'}</span>
+            <div className="mt-3 rounded-xl bg-[#fff7df] px-3 py-2 text-xs font-extrabold leading-5 text-[#8b6200]">
+              연락처 확인만으로 기숙사 룸메이트 신청이 완료되지 않아요. 학교 안내에 따라 별도 구글폼 신청까지 꼭 진행해 주세요.
             </div>
-          </div>
+          </>
         ) : (
           <p className="mt-1 text-xs font-semibold text-fg-basic-muted">
             {isLoadingContact ? '공개된 연락처를 확인하는 중이에요.' : '공개된 연락처로 이후 일정을 조율해 주세요.'}
@@ -667,8 +672,11 @@ function ChatRoom() {
                   최종확정 전에 확인해 주세요
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-fg-basic-muted">
-                  최종확정 후 두 사람이 모두 확정하면 서로의 이름과 전화번호가 공개돼요. 실제 기숙사 룸메이트 신청은 학교 안내에 따라 별도 구글폼으로 진행해야 합니다.
+                  최종확정 후 두 사람이 모두 확정하면 서로의 이름과 전화번호가 공개돼요.
                 </p>
+                <div className="mt-4 rounded-lg bg-[#fff7df] px-3 py-3 text-sm font-extrabold leading-6 text-[#8b6200]">
+                  중요: 연락처 확인은 매칭 확정용이며, 실제 기숙사 룸메이트 신청은 학교 안내에 따라 별도 구글폼으로 반드시 진행해야 합니다.
+                </div>
                 {confirmErrorMessage && (
                   <p className="mt-3 rounded-lg bg-[#fff1f3] px-3 py-2 text-xs font-semibold text-[#a83f57]" role="alert">
                     {confirmErrorMessage}
@@ -724,7 +732,7 @@ function ChatRoom() {
                   최종확정이 완료됐어요
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-fg-basic-muted">
-                  아래 연락처로 서로 확인한 뒤, 기숙사 룸메이트 신청은 별도 구글폼으로 꼭 진행해 주세요.
+                  아래 연락처로 서로 확인해 주세요.
                 </p>
                 <dl className="mt-4 rounded-lg bg-[#f5f8fc] px-4 py-3 text-sm">
                   <div className="flex justify-between gap-4 py-1">
@@ -736,6 +744,9 @@ function ChatRoom() {
                     <dd className="font-extrabold text-fg-primary">{confirmedContact?.partnerPhoneNumber || '-'}</dd>
                   </div>
                 </dl>
+                <div className="mt-3 rounded-lg bg-[#fff7df] px-3 py-3 text-sm font-extrabold leading-6 text-[#8b6200]">
+                  연락처가 공개되어도 신청이 완료된 것은 아닙니다. 기숙사 룸메이트 신청은 별도 구글폼으로 꼭 제출해 주세요.
+                </div>
                 <button
                   type="button"
                   className="mt-5 min-h-11 w-full rounded-full bg-brand-primary px-4 text-sm font-extrabold text-white"
