@@ -19,6 +19,7 @@ import ProtectedRoute from './auth/ProtectedRoute.jsx';
 import Admin from './pages/Admin/Admin.jsx'
 import CertifiedRoute from './auth/CertifiedRoute.jsx'
 import Onboarding from './pages/Onboarding/Onboarding.jsx'
+import ServiceEntry from './auth/ServiceEntry.jsx'
 
 function App() {
   return (
@@ -34,7 +35,8 @@ function App() {
 
       {/* 로그인한 사용자만 접근할 수 있는 페이지 */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Navigate to="/matching" replace />} />
+        <Route path="/" element={<Navigate to="/entry" replace />} />
+        <Route path="/entry" element={<ServiceEntry />} />
         <Route path="/user/details" element={<UserDetails />} />
         <Route path="/onboarding" element={<Onboarding />} />
 
