@@ -5,7 +5,7 @@ import { useAuth } from '../../auth/AuthContext.jsx';
 
 function KakaoCallback() {
   const navigate = useNavigate();
-  const { login, refreshCurrentUser } = useAuth();
+  const { completeLogin } = useAuth();
   const requestedRef = useRef(false);
 
   useEffect(() => {
@@ -30,8 +30,7 @@ function KakaoCallback() {
           throw new Error('Kakao response does not include an access token.');
         }
 
-        login(accessToken);
-        await refreshCurrentUser();
+        await completeLogin(accessToken);
         navigate('/entry', { replace: true });
       } catch (error) {
         console.error('Access token issuance failed:', error);
@@ -40,7 +39,7 @@ function KakaoCallback() {
     }
 
     requestAccessToken();
-  }, [login, navigate, refreshCurrentUser]);
+  }, [completeLogin, navigate]);
 
   return (
     <main className="grid min-h-dvh place-items-center bg-brand-background">

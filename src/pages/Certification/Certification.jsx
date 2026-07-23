@@ -63,19 +63,25 @@ function Certification() {
 
         try {
             if (isRequested) {
-                const user = await refreshCurrentUser();
+                try {
+                    const user = await refreshCurrentUser();
 
-                if (canAccessCertifiedRoutes(user)) {
-                    navigate('/matching', { replace: true });
-                } else if (
-                    isCertificationEligible(user)
-                    && user.certificationStatus === 'REJECTED'
-                ) {
-                    setRequestedThisSession(false);
-                    setMessage('인증이 반려됐어요. 사진을 확인한 뒤 다시 요청해주세요.');
-                } else {
-                    setMessage('아직 관리자가 인증을 검토하고 있어요.');
+                    if (canAccessCertifiedRoutes(user)) {
+                        navigate('/matching', { replace: true });
+                    } else if (
+                        isCertificationEligible(user)
+                        && user.certificationStatus === 'REJECTED'
+                    ) {
+                        setRequestedThisSession(false);
+                        setMessage('인증이 반려됐어요. 사진을 확인한 뒤 다시 요청해주세요.');
+                    } else {
+                        setMessage('아직 관리자가 인증을 검토하고 있어요.');
+                    }
+                } catch (statusCheckError) {
+                    console.error('인증 상태 확인 실패', statusCheckError);
+                    setMessage('인증 상태를 확인하지 못했어요. 잠시 후 다시 시도해주세요.');
                 }
+
                 return;
             }
 
