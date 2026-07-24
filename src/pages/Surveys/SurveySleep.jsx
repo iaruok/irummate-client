@@ -12,7 +12,7 @@ function SurveySleep() {
     const [bedtime, setBedtime] = useState(() => loadSurveyDraft().bedtime ?? null);
     const [snoring, setSnoring] = useState(() => loadSurveyDraft().snoring ?? null);
     const [sleepTalking, setSleepTalking] = useState(() => loadSurveyDraft().sleepTalking ?? null);
-    const [errorMessage, setErrorMessage] = useState('');
+    const [showRequiredFieldsModal, setShowRequiredFieldsModal] = useState(false);
 
     useEffect(() => {
         saveSurveyDraft({ bedtime, snoring, sleepTalking });
@@ -20,11 +20,10 @@ function SurveySleep() {
 
     function handleNext() {
         if (![bedtime, snoring, sleepTalking].every(Number.isInteger)) {
-            setErrorMessage('수면 설문의 모든 항목을 선택해주세요.');
+            setShowRequiredFieldsModal(true);
             return;
         }
 
-        setErrorMessage('');
         saveSurveyDraft({ bedtime, snoring, sleepTalking });
         navigate(getSurveyPath('/surveys/clean', isEditMode));
     }
@@ -54,6 +53,11 @@ function SurveySleep() {
                     label="취침 시간대"
                     leftDescription="10시 이전"
                     rightDescription="새벽 1시 이후"
+                    indexLabels={{
+                        2: '10시~11시',
+                        3: '11시~12시',
+                        4: '12시~1시',
+                    }}
                     onChange={setBedtime}
                     required
                 />
@@ -63,6 +67,7 @@ function SurveySleep() {
                     label="코골이"
                     leftDescription="없음"
                     rightDescription="심함"
+                    indexLabels={{ 3: '보통' }}
                     onChange={setSnoring}
                     required
                 />
@@ -72,11 +77,11 @@ function SurveySleep() {
                     label="잠꼬대"
                     leftDescription="없음"
                     rightDescription="심함"
+                    indexLabels={{ 3: '보통' }}
                     onChange={setSleepTalking}
                     required
                 />
             </section>
-            {errorMessage && <p className="mb-3 text-xs font-bold text-[#c04a67]" role="alert">{errorMessage}</p>}
             </div>
             <div className="shrink-0 bg-brand-background pt-3">
                 <MoveBtnGroup
@@ -84,6 +89,10 @@ function SurveySleep() {
                     onNext={handleNext}
                 />
             </div>
+            <RequiredFieldsModal
+                open={showRequiredFieldsModal}
+                onClose={() => setShowRequiredFieldsModal(false)}
+            />
         </main>
     );
 }

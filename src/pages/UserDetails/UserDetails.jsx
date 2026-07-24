@@ -5,34 +5,95 @@ import InlineInput from './components/InlineInput.jsx';
 import RadioBtnGroup from '../../components/RadioBtnGroup.jsx';
 import DropDownMenu from './components/DropDownMenu.jsx';
 import MoveBtnGroup from '../../components/MoveBtnGroup.jsx';
-import { postUserDetails } from '../../api/users/users.js';
+import {
+    patchUserDetails,
+    postUserDetails,
+} from '../../api/users/users.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
+import RequiredFieldsModal from '../../components/RequiredFieldsModal.jsx';
+import { getUserDetailsSubmitter } from './userDetailsSubmit.js';
+import {
+    getUserDetailsFieldErrors,
+    hasMissingUserDetails,
+    isBadRequest,
+} from './userDetailsValidation.js';
 
 function UserDetails() {
     const navigate = useNavigate();
     const { refreshCurrentUser } = useAuth();
     const [realName, setRealName] = useState('');
-    const [age, setAge] = useState(0);
+    const [age, setAge] = useState('');
     const [gender, setGender] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');    // 전화번호
     const [studentId, setStudentId] = useState('');
     const [department, setDepartment] = useState('');
+    const [showRequiredFieldsModal, setShowRequiredFieldsModal] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [isFormatValidationActive, setIsFormatValidationActive] = useState(false);
+
+    function getFormValues(overrides = {}) {
+        return {
+            realName,
+            age,
+            gender,
+            phoneNumber,
+            studentId,
+            department,
+            ...overrides,
+        };
+    }
+
+    function updateValidatedField(field, value, setter) {
+        setter(value);
+
+        if (isFormatValidationActive) {
+            setFieldErrors(getUserDetailsFieldErrors(getFormValues({ [field]: value })));
+        }
+    }
 
     async function handleNext() {
+        const formValues = getFormValues();
+
+        if (hasMissingUserDetails(formValues)) {
+            setFieldErrors({});
+            setIsFormatValidationActive(false);
+            setShowRequiredFieldsModal(true);
+            return;
+        }
+
+        const nextFieldErrors = getUserDetailsFieldErrors(formValues);
+        setIsFormatValidationActive(true);
+        setFieldErrors(nextFieldErrors);
+
+        if (Object.keys(nextFieldErrors).length > 0) {
+            return;
+        }
+
         const requestBody = {
-            realName: realName,
-            age: Number(age),
-            gender: gender,
-            phoneNumber: phoneNumber,
-            studentId: studentId,
-            department: department
+            ...formValues,
+            age: Number(formValues.age),
         };
+
         try {
-            const responseBody = await postUserDetails(requestBody);
+            const currentUser = await refreshCurrentUser();
+            const submitUserDetails = getUserDetailsSubmitter(currentUser?.role, {
+                patchUserDetails,
+                postUserDetails,
+            });
+            const responseBody = await submitUserDetails(requestBody);
             console.log(responseBody.message);
-            await refreshCurrentUser();
+
+            if (currentUser?.role === 'GUEST') {
+                await refreshCurrentUser();
+            }
+
             navigate('/surveys/sleep');
         } catch (error) {
+            if (isBadRequest(error)) {
+                setShowRequiredFieldsModal(true);
+                return;
+            }
+
             console.error(error);
         }
         
@@ -75,7 +136,8 @@ function UserDetails() {
                             value={age}
                             placeholder="20"
                             autoComplete="age"
-                            onChange={setAge}
+                            onChange={(value) => updateValidatedField('age', value, setAge)}
+                            errorMessage={fieldErrors.age}
                         />
                     </div>
                     <RadioBtnGroup
@@ -98,7 +160,8 @@ function UserDetails() {
                     value={phoneNumber}
                     placeholder="010-1234-5678"
                     autoComplete="tel"
-                    onChange={setPhoneNumber}
+                    onChange={(value) => updateValidatedField('phoneNumber', value, setPhoneNumber)}
+                    errorMessage={fieldErrors.phoneNumber}
                 />
                 <InlineInput
                     name="studentId"
@@ -107,7 +170,8 @@ function UserDetails() {
                     value={studentId}
                     placeholder="2026920000"
                     autoComplete="studentId"
-                    onChange={setStudentId}
+                    onChange={(value) => updateValidatedField('studentId', value, setStudentId)}
+                    errorMessage={fieldErrors.studentId}
                 />
                 <DropDownMenu
                     name="department"
@@ -134,6 +198,10 @@ function UserDetails() {
                     onNext={handleNext}
                 />
             </div>
+            <RequiredFieldsModal
+                open={showRequiredFieldsModal}
+                onClose={() => setShowRequiredFieldsModal(false)}
+            />
         </main>
     );
 }
