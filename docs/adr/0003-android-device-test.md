@@ -73,6 +73,7 @@ Android 소켓 실패의 원인은 서버의 출처(Origin) 검사였다. 같은
 ## 결정
 
 1. **카카오 redirect URI는 `https://www.irummate.com/oauth/kakao/callback`을 쓴다.** 1학기 값이고 카카오 콘솔에 등록되어 있다. 서버는 redirect URI를 환경변수(`KAKAO_REDIRECT_URI`) 하나로만 받아 코드 교환에 쓰므로, 서버·카카오 콘솔·클라이언트 `.env`의 값이 같으면 서버 코드는 바꾸지 않는다. 카카오 복귀를 ① App Links·Universal Links로 확정하면 이 값이 그대로 확정되고, ② 카카오 네이티브 로그인으로 바꾸면 이 주소는 관리자 웹에만 쓴다.
+   - **0006에서 바뀜:** 이 주소는 출시(운영) 빌드에만 쓴다. 개발 중에는 `https://test.irummate.com/oauth/kakao/callback`을 쓰고, test 서버의 `KAKAO_REDIRECT_URI`도 그 값으로 맞춘다.
 2. **재발급은 ①(네이티브 쿠키)로 확정한다.** Android 실기기(Capacitor 7과 8.6.2 모두)와 iOS 시뮬레이터에서 네 항목이 모두 통과했다. Android 실기기에서는 앱이 실제로 쓰는 axios 경로(재발급, 401 후 재시도)도 통과했으므로 `shared/api/client.ts`의 재발급 부분은 바꾸지 않는다. iOS는 시뮬레이터 결과를 첫 기기 시험의 결과로 인정한다. iOS 실기기 시험에서 실패가 나오면 이 결정을 다시 연다. 그때도 두 플랫폼 중 하나라도 실패하면 둘 다 ②로 바꾼다.
 3. **앱 출처를 서버의 WebSocket 허용 목록에 추가해 달라고 백엔드에 요청한다.** `WebSocketConfig`의 `setAllowedOriginPatterns`에 `https://localhost`(Android)와 `capacitor://localhost`(iOS)를 더한다. 재발급은 앱 출처에서도 403이 나지 않았으므로 CORS와 `AuthController.TRUSTED_ORIGINS`는 필수가 아니다(일관성을 위해 같이 넣을지는 백엔드가 정한다). 2026-11-19 기준 test 서버에 반영되어 있다.
 4. **Capacitor를 8.6.2로 올린다.** Capacitor 7의 iOS 템플릿은 UIScene 방식을 쓰지 않는다. iOS 27부터는 UIKit이 이런 앱을 시작 직후 강제 종료한다(충돌 지점 `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`). 같은 빌드가 iOS 26.5에서는 실행되고 iOS 27.0에서는 종료됐다. Capacitor 8.5부터 UIScene을 지원하므로 8.6.2로 올리고 `ios/`에 `SceneDelegate`를 넣었다. 패키지 버전을 맞춰야 해서 `android/`도 함께 이전했다(compileSdk·targetSdk 36, `minSdk` 24). 빌드에는 JDK 21 이상이 필요하다.
