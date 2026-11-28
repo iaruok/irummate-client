@@ -28,6 +28,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/push-tokens/{installationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["register"];
+        post?: never;
+        delete: operations["disable"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/privacy/consents/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["change"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/internal/notices": {
         parameters: {
             query?: never;
@@ -38,6 +70,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["ingest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["report"];
         delete?: never;
         options?: never;
         head?: never;
@@ -160,6 +208,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/privacy/consents/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/matching/match": {
         parameters: {
             query?: never;
@@ -170,6 +234,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["match"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chatbot/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ask"];
         delete?: never;
         options?: never;
         head?: never;
@@ -234,6 +314,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["publish"];
         delete?: never;
         options?: never;
         head?: never;
@@ -374,6 +470,38 @@ export interface paths {
          * @description 작성자가 활동 시작 전 OPEN·CLOSED 상태의 글을 취소합니다. 모집 마감 시각이 지났어도 활동 시작 전이면 취소할 수 있으며 취소 사유는 필수입니다.
          */
         patch: operations["cancelRecruitment"];
+        trace?: never;
+    };
+    "/api/notifications/{notificationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["markRead"];
+        trace?: never;
+    };
+    "/api/notifications/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["preferences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updatePreferences"];
         trace?: never;
     };
     "/api/matching/requests": {
@@ -576,6 +704,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/privacy/consents/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["findMine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["unreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/notices": {
         parameters: {
             query?: never;
@@ -752,6 +928,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["findReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/{reportId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["findReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/monitoring/users": {
         parameters: {
             query?: never;
@@ -864,6 +1072,16 @@ export interface components {
             /** Format: int32 */
             size?: number;
         };
+        PushDeviceRequest: {
+            token: string;
+            /** @enum {string} */
+            platform: "ANDROID" | "IOS";
+        };
+        ChangeRequest: {
+            /** @enum {string} */
+            action: "AGREE" | "DECLINE" | "WITHDRAW";
+            documentVersion?: string;
+        };
         Item: {
             externalId: string;
             title: string;
@@ -891,6 +1109,11 @@ export interface components {
             updated?: number;
             /** Format: int32 */
             unchanged?: number;
+        };
+        ReportRequestDto: {
+            /** @enum {string} */
+            sourceType: "PROFILE" | "MATCHING" | "CHAT";
+            reason: string;
         };
         UserDetailsRequestDto: {
             realName: string;
@@ -1019,6 +1242,30 @@ export interface components {
             /** @enum {string} */
             status?: "OPEN" | "CLOSED" | "CANCELLED" | "ENDED";
         };
+        Agreement: {
+            agreed: boolean;
+            documentVersion?: string;
+        };
+        OnboardingRequest: {
+            profileCollection: components["schemas"]["Agreement"];
+            aiCertTraining: components["schemas"]["Agreement"];
+        };
+        FaqChatRequest: {
+            question: string;
+        };
+        FaqChatResponse: {
+            answer?: string;
+        };
+        GlobalApiResponseFaqChatResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["FaqChatResponse"];
+            errors?: components["schemas"]["ErrorResponse"][];
+            /** Format: int32 */
+            size?: number;
+        };
         CertificationRequestDto: {
             imageKey: string;
         };
@@ -1080,11 +1327,34 @@ export interface components {
             /** Format: int64 */
             accessTokenExpiresIn?: number;
         };
+        AdminNotificationRequest: {
+            /** Format: uuid */
+            requestId: string;
+            /** @enum {string} */
+            audience: "ALL" | "SELECTED";
+            recipientIds?: string[];
+            title: string;
+            body: string;
+        };
+        Accepted: {
+            /** Format: uuid */
+            requestId?: string;
+        };
+        GlobalApiResponseAccepted: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["Accepted"];
+            errors?: components["schemas"]["ErrorResponse"][];
+            /** Format: int32 */
+            size?: number;
+        };
         UserProfileUpdateRequestDto: {
             nickname?: string;
             profileImageUrl?: string;
-            profileImageUrlValid?: boolean;
             nicknameValid?: boolean;
+            profileImageUrlValid?: boolean;
         };
         GlobalApiResponseUserProfileUpdateResponseDto: {
             /** Format: int32 */
@@ -1110,7 +1380,6 @@ export interface components {
             phoneNumber?: string;
             realNameValid?: boolean;
             studentIdValid?: boolean;
-            genderValid?: boolean;
             departmentValid?: boolean;
             phoneNumberValid?: boolean;
         };
@@ -1188,12 +1457,36 @@ export interface components {
         RecruitmentCancelRequestDto: {
             cancelReason: string;
         };
+        PushPreferences: {
+            paused?: boolean;
+            chat?: boolean;
+            matching?: boolean;
+            mate?: boolean;
+            dormNotice?: boolean;
+            certification?: boolean;
+            recruitment?: boolean;
+            adminNotice?: boolean;
+        };
+        GlobalApiResponsePushPreferences: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["PushPreferences"];
+            errors?: components["schemas"]["ErrorResponse"][];
+            /** Format: int32 */
+            size?: number;
+        };
         MatchingRequestDto: {
             receiverId: string;
             matchStatus: string;
         };
         MatchConfirmRequestDto: {
             receiverId: string;
+        };
+        ChatReadRequestDto: {
+            /** Format: int64 */
+            lastReadMessageId: number;
         };
         ChatReadResponseDto: {
             success?: boolean;
@@ -1254,10 +1547,10 @@ export interface components {
             /** Format: int64 */
             version?: number;
             userId?: string;
-            userRealName?: string;
-            userNickname?: string;
+            realName?: string;
+            nickname?: string;
             semester?: string;
-            imageURL?: string;
+            imageUrl?: string;
             status?: string;
             adminComment?: string;
             /** Format: date-time */
@@ -1470,6 +1763,64 @@ export interface components {
             hasNext?: boolean;
             nextCursor?: components["schemas"]["RecruitmentBookmarkCursorDto"];
         };
+        ConsentView: {
+            /** @enum {string} */
+            type?: "PROFILE_COLLECTION" | "AI_CERT_TRAINING";
+            required?: boolean;
+            status?: string;
+            documentVersion?: string;
+            currentDocumentVersion?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ConsentsResponse: {
+            consents?: components["schemas"]["ConsentView"][];
+        };
+        GlobalApiResponseConsentsResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["ConsentsResponse"];
+            errors?: components["schemas"]["ErrorResponse"][];
+            /** Format: int32 */
+            size?: number;
+        };
+        Cursor: {
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: int64 */
+            id?: number;
+        };
+        GlobalApiResponsePage: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["Page"];
+            errors?: components["schemas"]["ErrorResponse"][];
+            /** Format: int32 */
+            size?: number;
+        };
+        Page: {
+            items?: components["schemas"]["Item"][];
+            hasNext?: boolean;
+            nextCursor?: components["schemas"]["Cursor"];
+        };
+        GlobalApiResponseUnreadCount: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["UnreadCount"];
+            errors?: components["schemas"]["ErrorResponse"][];
+            /** Format: int32 */
+            size?: number;
+        };
+        UnreadCount: {
+            /** Format: int64 */
+            totalUnreadCount?: number;
+        };
         GlobalApiResponseNoticesResponseDto: {
             /** Format: int32 */
             status?: number;
@@ -1516,6 +1867,8 @@ export interface components {
         ChatRoomResponseDto: {
             /** Format: int64 */
             roomId?: number;
+            /** @enum {string} */
+            type?: "MATCH" | "RECRUITMENT";
             partnerId?: string;
             partnerName?: string;
             partnerProfileImageUrl?: string;
@@ -1530,6 +1883,7 @@ export interface components {
             matchStatus?: "RECOMMENDED" | "HEART_SENT" | "HEART_RECEIVED" | "HEART_MATCHED" | "REJECTED_BY_ME" | "REJECTED_BY_OTHER" | "CONFIRM_PENDING" | "FINAL_CONFIRMED" | "CLOSED";
             confirmedByMe?: boolean;
             canConfirm?: boolean;
+            recruitment?: components["schemas"]["RecruitmentInfo"];
         };
         ChatRoomsResponseDto: {
             rooms?: components["schemas"]["ChatRoomResponseDto"][];
@@ -1543,6 +1897,15 @@ export interface components {
             errors?: components["schemas"]["ErrorResponse"][];
             /** Format: int32 */
             size?: number;
+        };
+        RecruitmentInfo: {
+            /** Format: int64 */
+            recruitmentId?: number;
+            title?: string;
+            /** @enum {string} */
+            category?: "MEAL" | "HOBBY" | "GROUP_BUY" | "OTHER";
+            /** Format: int32 */
+            participantCount?: number;
         };
         ChatMessageResponseDto: {
             /** Format: int64 */
@@ -1664,6 +2027,49 @@ export interface components {
             /** Format: int32 */
             size?: number;
         };
+        GlobalApiResponseReportsResponseDto: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["ReportsResponseDto"];
+            errors?: components["schemas"]["ErrorResponse"][];
+            /** Format: int32 */
+            size?: number;
+        };
+        ReportResponseDto: {
+            reportId?: string;
+            reporterId?: string;
+            reporterNickname?: string;
+            reportedId?: string;
+            reportedNickname?: string;
+            /** @enum {string} */
+            sourceType?: "PROFILE" | "MATCHING" | "CHAT";
+            reason?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        ReportsResponseDto: {
+            content?: components["schemas"]["ReportResponseDto"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        GlobalApiResponseReportResponseDto: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["ReportResponseDto"];
+            errors?: components["schemas"]["ErrorResponse"][];
+            /** Format: int32 */
+            size?: number;
+        };
         AdminMonitoringUserResponseDto: {
             userId?: string;
             realName?: string;
@@ -1743,12 +2149,24 @@ export interface components {
             /** Format: int32 */
             size?: number;
         };
-        GlobalApiResponseListAdminCertificationResponseDto: {
+        AdminCertificationPageResponseDto: {
+            certifications?: components["schemas"]["AdminCertificationResponseDto"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            hasNext?: boolean;
+        };
+        GlobalApiResponseAdminCertificationPageResponseDto: {
             /** Format: int32 */
             status?: number;
             code?: string;
             message?: string;
-            data?: components["schemas"]["AdminCertificationResponseDto"][];
+            data?: components["schemas"]["AdminCertificationPageResponseDto"];
             errors?: components["schemas"]["ErrorResponse"][];
             /** Format: int32 */
             size?: number;
@@ -1910,6 +2328,82 @@ export interface operations {
             };
         };
     };
+    register: {
+        parameters: {
+            query?: never;
+            header: {
+                Authorization: string;
+            };
+            path: {
+                installationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushDeviceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseVoid"];
+                };
+            };
+        };
+    };
+    disable: {
+        parameters: {
+            query?: never;
+            header: {
+                Authorization: string;
+            };
+            path: {
+                installationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseVoid"];
+                };
+            };
+        };
+    };
+    change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ingest: {
         parameters: {
             query?: never;
@@ -1930,6 +2424,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["GlobalApiResponseNoticeIngestResponseDto"];
+                };
+            };
+        };
+    };
+    report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseVoid"];
                 };
             };
         };
@@ -2438,6 +2958,28 @@ export interface operations {
             };
         };
     };
+    submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnboardingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     match: {
         parameters: {
             query?: never;
@@ -2490,6 +3032,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["GlobalApiResponseObject"];
+                };
+            };
+        };
+    };
+    ask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FaqChatRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseFaqChatResponse"];
                 };
             };
         };
@@ -2578,6 +3144,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["GlobalApiResponseVoid"];
+                };
+            };
+        };
+    };
+    publish: {
+        parameters: {
+            query?: never;
+            header: {
+                Authorization: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminNotificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseAccepted"];
                 };
             };
         };
@@ -2673,17 +3265,8 @@ export interface operations {
                     "*/*": components["schemas"]["GlobalApiResponseObject"];
                 };
             };
-            /** @description 설문 작성이 필요합니다. */
+            /** @description 기본 정보 또는 설문 작성이 필요합니다. */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GlobalApiResponseObject"];
-                };
-            };
-            /** @description 설문 내역을 찾을 수 없습니다. */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2733,7 +3316,7 @@ export interface operations {
                     "*/*": components["schemas"]["GlobalApiResponseObject"];
                 };
             };
-            /** @description 매칭 시작일 이후에는 설문을 수정할 수 없습니다. */
+            /** @description 기본 정보 또는 설문 작성이 필요하거나, 매칭 시작일 이후에는 수정할 수 없습니다. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2742,7 +3325,7 @@ export interface operations {
                     "*/*": components["schemas"]["GlobalApiResponseObject"];
                 };
             };
-            /** @description 설문 내역 또는 매칭 날짜를 찾을 수 없습니다. */
+            /** @description 매칭 날짜를 찾을 수 없습니다. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3220,6 +3803,72 @@ export interface operations {
             };
         };
     };
+    markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notificationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseVoid"];
+                };
+            };
+        };
+    };
+    preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponsePushPreferences"];
+                };
+            };
+        };
+    };
+    updatePreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushPreferences"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponsePushPreferences"];
+                };
+            };
+        };
+    };
     sendHeartOrRejectToReceiver: {
         parameters: {
             query?: never;
@@ -3367,7 +4016,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatReadRequestDto"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -3749,6 +4402,71 @@ export interface operations {
             };
         };
     };
+    findMine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseConsentsResponse"];
+                };
+            };
+        };
+    };
+    list: {
+        parameters: {
+            query?: {
+                category?: "MATCHING" | "MATE" | "DORM_NOTICE" | "CERTIFICATION" | "RECRUITMENT" | "ADMIN_NOTICE" | "CHAT";
+                cursorCreatedAt?: string;
+                cursorId?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponsePage"];
+                };
+            };
+        };
+    };
+    unreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseUnreadCount"];
+                };
+            };
+        };
+    };
     findNotices: {
         parameters: {
             query?: {
@@ -4050,6 +4768,51 @@ export interface operations {
             };
         };
     };
+    findReports: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseReportsResponseDto"];
+                };
+            };
+        };
+    };
+    findReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GlobalApiResponseReportResponseDto"];
+                };
+            };
+        };
+    };
     getUsers_1: {
         parameters: {
             query?: never;
@@ -4094,7 +4857,9 @@ export interface operations {
         parameters: {
             query?: {
                 status?: "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
+                semester?: string;
                 page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -4108,7 +4873,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["GlobalApiResponseListAdminCertificationResponseDto"];
+                    "*/*": components["schemas"]["GlobalApiResponseAdminCertificationPageResponseDto"];
                 };
             };
         };
