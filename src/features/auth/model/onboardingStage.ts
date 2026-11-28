@@ -7,8 +7,6 @@ import type { OnboardingStage } from './types';
 export interface OnboardingProgress {
   // 소개 화면을 이 기기에서 끝냈는지(사용자별 기기 표시. 민감 정보 아님).
   introCompleted: boolean;
-  // 이번 실행 중 약관 동의를 눌렀는지(메모리). 서버에 동의 필드가 생기면 그 값으로 바꾼다.
-  termsAgreedInSession: boolean;
 }
 
 export function getOnboardingStage(user: AuthStatusUser | null, progress: OnboardingProgress): OnboardingStage {
@@ -18,8 +16,9 @@ export function getOnboardingStage(user: AuthStatusUser | null, progress: Onboar
   if (user.role === 'ADMIN') return 'admin';
   // 3. 이번 학기 인증 승인 → 앱 전체. 가입 단계보다 먼저 봐서, 다른 기기에서 로그인해도 가입 화면이 다시 나오지 않는다.
   if (user.certificationStatus === 'APPROVED') return 'certified';
-  // 4. 약관 미동의. 서버가 동의 필드를 주면 그 값을, 주지 않으면 임시로 "기본 정보를 냈거나 이번 실행 중 동의함"을 본다.
-  const termsAgreed = user.termsAgreed ?? (user.detailsCompleted || progress.termsAgreedInSession);
+  // 4. 약관 미동의. 서버 동의 기록의 값을 본다. 묻지 않았으면(null) 기본 정보를 냈다는 것은
+  //    서버가 동의를 확인했다는 뜻이라(동의 없이는 기본 정보 제출이 403) 동의로 본다(ADR 0009).
+  const termsAgreed = user.termsAgreed ?? user.detailsCompleted;
   if (!termsAgreed) return 'terms';
   // 5. 소개 미완료
   if (!progress.introCompleted) return 'intro';

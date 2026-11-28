@@ -15,10 +15,8 @@ const base: AuthStatusUser = {
   termsAgreed: null,
 };
 
-const fresh: OnboardingProgress = { introCompleted: false, termsAgreedInSession: false };
-const agreed: OnboardingProgress = { introCompleted: false, termsAgreedInSession: true };
-const introDone: OnboardingProgress = { introCompleted: true, termsAgreedInSession: true };
-const introDoneNewRun: OnboardingProgress = { introCompleted: true, termsAgreedInSession: false };
+const fresh: OnboardingProgress = { introCompleted: false };
+const introDone: OnboardingProgress = { introCompleted: true };
 
 describe('getOnboardingStage', () => {
   it.each<[string, Partial<AuthStatusUser> | null, OnboardingProgress, OnboardingStage]>([
@@ -36,22 +34,21 @@ describe('getOnboardingStage', () => {
     ['인증 승인 → certified', { detailsCompleted: true, certificationStatus: 'APPROVED' }, introDone, 'certified'],
     ['인증 승인은 다른 기기(소개 표시 없음)여도 certified', { detailsCompleted: true, certificationStatus: 'APPROVED' }, fresh, 'certified'],
     ['인증 승인은 설문 미완료여도 certified', { detailsCompleted: true, certificationStatus: 'APPROVED', surveyCompleted: false }, fresh, 'certified'],
-    // 4. 약관
-    ['처음 가입 → terms', {}, fresh, 'terms'],
-    ['소개 표시가 있어도 이번 실행에 동의 전이고 기본 정보가 없으면 → terms', {}, introDoneNewRun, 'terms'],
-    ['서버가 미동의라고 주면 이번 실행 중 동의보다 우선 → terms', { termsAgreed: false }, introDone, 'terms'],
-    ['서버가 동의라고 주면 새 실행이어도 → intro', { termsAgreed: true }, fresh, 'intro'],
+    // 4. 약관 (termsAgreed: 서버 동의 기록. null이면 묻지 않음)
+    ['서버 동의 기록이 미동의 → terms', { termsAgreed: false }, fresh, 'terms'],
+    ['소개 표시가 있어도 서버 동의 기록이 미동의 → terms', { termsAgreed: false }, introDone, 'terms'],
+    ['동의 기록을 묻지 않았고 기본 정보도 없음 → terms', { termsAgreed: null }, fresh, 'terms'],
     // 5. 소개
-    ['약관 동의 후 → intro', {}, agreed, 'intro'],
-    ['기본 정보를 냈지만 이 기기에 소개 표시 없음 → intro', { detailsCompleted: true }, fresh, 'intro'],
+    ['서버 동의 기록이 동의 → intro', { termsAgreed: true }, fresh, 'intro'],
+    ['기본 정보를 냈으면(서버가 동의 확인) 이 기기에 소개 표시 없음 → intro', { detailsCompleted: true }, fresh, 'intro'],
     // 6. 기본 정보
-    ['약관·소개 후 → profile', {}, introDone, 'profile'],
+    ['동의·소개 후 → profile', { termsAgreed: true }, introDone, 'profile'],
     // 7. 심사 중
-    ['인증 심사 중 → pending', { detailsCompleted: true, certificationStatus: 'PENDING' }, introDoneNewRun, 'pending'],
+    ['인증 심사 중 → pending', { detailsCompleted: true, certificationStatus: 'PENDING' }, introDone, 'pending'],
     // 8. 기숙사 인증
-    ['기본 정보 완료, 인증 요청 없음 → certification', { detailsCompleted: true }, introDoneNewRun, 'certification'],
-    ['인증 반려 → certification', { detailsCompleted: true, certificationStatus: 'REJECTED' }, introDoneNewRun, 'certification'],
-    ['인증 만료(새 학기) → certification', { detailsCompleted: true, certificationStatus: 'EXPIRED' }, introDoneNewRun, 'certification'],
+    ['기본 정보 완료, 인증 요청 없음 → certification', { detailsCompleted: true }, introDone, 'certification'],
+    ['인증 반려 → certification', { detailsCompleted: true, certificationStatus: 'REJECTED' }, introDone, 'certification'],
+    ['인증 만료(새 학기) → certification', { detailsCompleted: true, certificationStatus: 'EXPIRED' }, introDone, 'certification'],
   ])('%s', (_name, override, progress, expected) => {
     const user = override === null ? null : { ...base, ...override };
     expect(getOnboardingStage(user, progress)).toBe(expected);

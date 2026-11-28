@@ -1,5 +1,5 @@
-// 서버가 모르는 가입 진행 표시 두 가지. 단계 판정(onboardingStage)의 두 번째 입력이다.
-// 둘 다 민감 정보가 아니고, 토큰은 여기 두지 않는다.
+// 서버가 모르는 가입 진행 표시. 단계 판정(onboardingStage)의 두 번째 입력이다.
+// 민감 정보가 아니고, 토큰은 여기 두지 않는다. 약관 동의는 서버 동의 기록으로 판정한다(ADR 0009).
 import type { OnboardingProgress } from './onboardingStage';
 
 // 소개 완료 표시: 사용자별로 이 기기에 남긴다(localStorage).
@@ -34,24 +34,8 @@ export const introProgress = {
   },
 };
 
-// 약관 동의 표시: 서버에 동의 필드가 생기기 전까지 이번 실행 동안만 메모리에 둔다(ADR 0004 결정 2).
-let termsAgreedUserId: string | null = null;
-
-export const termsProgress = {
-  isAgreed(userId: string): boolean {
-    return termsAgreedUserId === userId;
-  },
-  markAgreed(userId: string): void {
-    termsAgreedUserId = userId;
-  },
-  clear(): void {
-    termsAgreedUserId = null;
-  },
-};
-
 export function readOnboardingProgress(userId: string): OnboardingProgress {
   return {
     introCompleted: introProgress.isCompleted(userId),
-    termsAgreedInSession: termsProgress.isAgreed(userId),
   };
 }

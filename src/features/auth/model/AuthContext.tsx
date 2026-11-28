@@ -2,10 +2,10 @@ import { createContext, useCallback, useEffect, useMemo, useState, type ReactNod
 
 import { isAppError, refreshAccessToken } from '@shared/api';
 
-import { fetchAuthStatus } from '../api/authApi';
+import { fetchAuthStatus, fetchProfileConsentAgreed } from '../api/authApi';
 import { createAuthOperationCoordinator } from './authOperationCoordinator';
 import { authEvents } from './authEvents';
-import { readOnboardingProgress, termsProgress } from './onboardingProgress';
+import { readOnboardingProgress } from './onboardingProgress';
 import { getOnboardingStage } from './onboardingStage';
 import { toSessionUser } from './sessionUser';
 import { tokenStorage } from './tokenStorage';
@@ -35,8 +35,10 @@ async function loadSessionUser(): Promise<SessionUser | null> {
   // 앱을 다시 열면 메모리의 접근 토큰이 비어 있다. 기기에서 불러오는 단계 없이 재발급으로 채운다.
   // 로그인 완료 중에는 새 토큰이 이미 들어 있어 재발급하지 않는다.
   if (!tokenStorage.get()) await refreshAccessToken();
-  const user = await fetchAuthStatus();
-  if (!user) return null;
+  const status = await fetchAuthStatus();
+  if (!status) return null;
+  // 약관 동의는 기본 정보를 내기 전에만 서버 동의 기록을 묻는다. 낸 뒤라면 서버가 이미 동의를 확인했다(ADR 0009).
+  const user = status.detailsCompleted ? status : { ...status, termsAgreed: await fetchProfileConsentAgreed() };
   return toSessionUser(user, getOnboardingStage(user, readOnboardingProgress(user.id)));
 }
 
@@ -117,7 +119,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeLogin: (accessToken) => coordinator.completeLogin(accessToken),
       signOut: () => {
         tokenStorage.clear();
-        termsProgress.clear();
         // 진행 중이던 상태 확인이 늦게 끝나도 로그인 상태로 되돌리지 못하게 한다.
         coordinator.handleAuthExpired();
       },

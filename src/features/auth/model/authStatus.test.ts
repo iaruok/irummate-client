@@ -47,8 +47,7 @@ describe('readAuthStatus', () => {
     ['인증 상태 빠짐 → NONE', { certificationStatus: undefined }, { certificationStatus: 'NONE' }],
     ['완료 표시 빠짐 → 미완료', { detailsCompleted: undefined, surveyCompleted: undefined }, { detailsCompleted: false, surveyCompleted: false }],
     ['닉네임 빠짐 → 빈 문자열', { nickname: undefined }, { nickname: '' }],
-    ['약관 동의 필드가 오면 그대로', { termsAgreed: true }, { termsAgreed: true }],
-    ['약관 동의 필드가 boolean이 아니면 → null', { termsAgreed: 'yes' }, { termsAgreed: null }],
+    ['약관 동의는 인증 상태 응답에서 읽지 않음 → null(동의 기록에서 채움)', { termsAgreed: true }, { termsAgreed: null }],
   ])('%s', (_name, userOverride, expectedOverride) => {
     const raw = { authenticated: true, user: { ...serverUser, ...userOverride } };
     expect(readAuthStatus(raw)).toEqual({ ...expected, ...expectedOverride });

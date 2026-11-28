@@ -9,7 +9,7 @@ import { server } from '@test/msw/server';
 
 import { authClientBindings } from '../model/clientBindings';
 import { tokenStorage } from '../model/tokenStorage';
-import { fetchAuthStatus, kakaoCallback } from './authApi';
+import { fetchAuthStatus, fetchProfileConsentAgreed, kakaoCallback } from './authApi';
 
 describe('authApi', () => {
   it('kakaoCallback: 코드를 보내고 접근 토큰을 돌려준다(저장은 하지 않음)', async () => {
@@ -46,5 +46,21 @@ describe('authApi', () => {
     setSessionScenario({ session: 'pending' });
 
     await expect(fetchAuthStatus()).resolves.toMatchObject({ role: 'USER', certificationStatus: 'PENDING' });
+  });
+
+  it('fetchProfileConsentAgreed: 약관 단계 사용자는 미동의', async () => {
+    registerAuthHandlers(authClientBindings);
+    tokenStorage.set(mswAccessToken);
+    setSessionScenario({ session: 'onboarding', stage: 'terms' });
+
+    await expect(fetchProfileConsentAgreed()).resolves.toBe(false);
+  });
+
+  it('fetchProfileConsentAgreed: 필수 동의를 낸 사용자는 동의', async () => {
+    registerAuthHandlers(authClientBindings);
+    tokenStorage.set(mswAccessToken);
+    setSessionScenario({ session: 'onboarding', stage: 'intro' });
+
+    await expect(fetchProfileConsentAgreed()).resolves.toBe(true);
   });
 });

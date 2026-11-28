@@ -3,11 +3,19 @@
 import { apiClient, AppError, publicClient, unwrap, type ApiEnvelope } from '@shared/api';
 
 import { readAuthStatus, type AuthStatusUser } from '../model/authStatus';
+import { readProfileConsentAgreed } from '../model/profileConsent';
 
 // GET /api/auth/status (operationId: status). 비로그인이면 서버가 200 + authenticated: false를 주고, 그때 null.
 export async function fetchAuthStatus(): Promise<AuthStatusUser | null> {
   const response = await apiClient.get<ApiEnvelope<unknown>>('/api/auth/status');
   return readAuthStatus(unwrap(response.data));
+}
+
+// GET /api/privacy/consents/me (operationId: findMine) → 필수 동의(PROFILE_COLLECTION) 여부.
+// 인증 상태 응답에는 동의 필드가 없어서, 가입 단계 판정에 필요할 때만 따로 묻는다.
+export async function fetchProfileConsentAgreed(): Promise<boolean> {
+  const response = await apiClient.get<ApiEnvelope<unknown>>('/api/privacy/consents/me');
+  return readProfileConsentAgreed(unwrap(response.data));
 }
 
 // GET /api/auth/kakao/callback?code= (operationId: kakaoCallback). 공개 클라이언트로 보내 재발급 쿠키를 받는다.

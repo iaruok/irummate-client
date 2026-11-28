@@ -73,6 +73,44 @@ describe('AuthContext 시작', () => {
     expect(tokenStorage.get()).toBe(mswAccessToken);
   });
 
+  it('기본 정보 전: 서버 동의 기록이 미동의면 약관 단계', async () => {
+    setSessionScenario({ session: 'onboarding', stage: 'terms' });
+    renderSession();
+
+    await waitFor(() => expect(text('status')).toBe('authenticated'));
+    expect(text('stage')).toBe('terms');
+  });
+
+  it('기본 정보 전: 서버 동의 기록이 동의면 앱을 다시 열어도 소개 단계', async () => {
+    setSessionScenario({ session: 'onboarding', stage: 'intro' });
+    renderSession();
+
+    await waitFor(() => expect(text('status')).toBe('authenticated'));
+    expect(text('stage')).toBe('intro');
+  });
+
+  it('기본 정보를 냈으면 동의 기록을 묻지 않는다', async () => {
+    setSessionScenario({ session: 'certified' });
+    const consentRequests = vi.fn();
+    server.events.on('request:start', ({ request }) => {
+      if (request.url.includes('/api/privacy/consents/me')) consentRequests();
+    });
+    renderSession();
+
+    await waitFor(() => expect(text('status')).toBe('authenticated'));
+    expect(consentRequests).not.toHaveBeenCalled();
+    server.events.removeAllListeners('request:start');
+  });
+
+  it('동의 기록 조회 서버 오류 → 비로그인으로 보내지 않고 다시 시도를 기다린다', async () => {
+    setSessionScenario({ session: 'onboarding', stage: 'terms' });
+    server.use(http.get('*/api/privacy/consents/me', () => fail(500, 'INTERNAL_SERVER_ERROR', '서버 오류')));
+    renderSession();
+
+    await waitFor(() => expect(text('startError')).toBe('server'));
+    expect(text('status')).toBe('loading');
+  });
+
   it('재발급 401 → 비로그인', async () => {
     setSessionScenario({ session: 'anonymous' });
     renderSession();
